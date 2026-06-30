@@ -38,7 +38,8 @@ export async function uploadMedia(
   file: File
 ): Promise<{ url: string; thumbnailUrl: string }> {
   const path = `friends/${friendId}/${folder}/${Date.now()}-${file.name}`
-  await supabase.storage.from('friend-media').upload(path, file)
+  const { error } = await supabase.storage.from('friend-media').upload(path, file)
+  if (error) throw error
   const { data } = supabase.storage.from('friend-media').getPublicUrl(path)
   return { url: data.publicUrl, thumbnailUrl: data.publicUrl }
 }
