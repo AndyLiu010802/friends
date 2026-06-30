@@ -1,12 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;700&family=Ma+Shan+Zheng&display=swap');
 @import "tailwindcss";
 
+/* @theme exposes Tailwind utility classes (e.g. bg-gold, text-purple).
+   :root custom props are used in raw CSS var() calls.
+   Keep values in sync — @theme is the source of truth. */
 @theme {
   --color-gold: #e2b96f;
   --color-gold-dim: rgba(226,185,111,0.3);
   --color-purple: #9b8ec4;
   --color-purple-dim: rgba(155,142,196,0.5);
   --color-night: #020408;
+  --color-card-bg: rgba(4,7,20,0.94);
+  --color-card-border: rgba(226,185,111,0.3);
   --font-serif: 'Noto Serif SC', serif;
   --font-handwrite: 'Ma Shan Zheng', cursive;
 }
@@ -21,14 +26,16 @@
   --card-border:rgba(226,185,111,0.3);
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  cursor: none;
+}
 
 body {
   background: var(--bg);
   color: #e2e8f0;
   font-family: 'Noto Serif SC', serif;
-  overflow: hidden;
+  overflow: hidden; /* full-viewport canvas layout — required by StarMap */
 }
-
-/* Hide default cursor — moon trail replaces it */
-*, *::before, *::after { cursor: none !important; }
