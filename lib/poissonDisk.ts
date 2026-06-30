@@ -1,3 +1,4 @@
+/** Returns a random point at least `minDist` from all points in `existing`. */
 export function findSafePosition(
   existing: [number, number, number][],
   minDist = 2.5,
