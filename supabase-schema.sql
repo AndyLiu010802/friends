@@ -33,7 +33,7 @@ create table if not exists friend_backups (
 
 create table if not exists atlas_chats (
   id text primary key,
-  friend_id text not null,
+  friend_id text not null references friends(id) on delete cascade,
   messages jsonb not null default '[]'::jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
