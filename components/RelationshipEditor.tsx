@@ -3,6 +3,10 @@ import { useState } from 'react'
 import { getFriends } from '@/lib/store'
 import type { Relationship } from '@/lib/types'
 
+// Relationships are stored one-directionally on the friend being edited (not mirrored
+// onto the other friend's record). constellationLines.ts dedups by unordered id pair
+// when drawing the star map, so editing this list on friend A won't show up when
+// editing friend B's own relationships unless it's added there too — by design, not a bug.
 interface Props {
   currentFriendId: string
   relationships: Relationship[]
