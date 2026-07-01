@@ -1,7 +1,8 @@
-import type { Friend, Atlas, StarConfig } from './types'
+import type { Friend, Atlas, AtlasChat, StarConfig } from './types'
 
-const FRIENDS_KEY = 'yj_friends'
-const ATLAS_KEY   = 'yj_atlas'
+const FRIENDS_KEY    = 'yj_friends'
+const ATLAS_KEY       = 'yj_atlas'
+const ATLAS_CHAT_KEY = 'yj_atlas_chats'
 
 const DEFAULT_STAR_CONFIG: StarConfig = {
   kind: 'nebula', coreColor: '#94a3b8', glowColor: '#cbd5e1',
@@ -68,4 +69,44 @@ export function saveAtlas(atlas: Atlas): void {
 
 export function getAtlasByFriendId(friendId: string): Atlas | undefined {
   return getAtlasList().find(a => a.friendId === friendId)
+}
+
+export function deleteAtlas(friendId: string): void {
+  const list = getAtlasList().filter(a => a.friendId !== friendId)
+  localStorage.setItem(ATLAS_KEY, JSON.stringify(list))
+}
+
+export function getAtlasChats(): AtlasChat[] {
+  try {
+    return JSON.parse(localStorage.getItem(ATLAS_CHAT_KEY) ?? '[]')
+  } catch { return [] }
+}
+
+export function getAtlasChatByFriendId(friendId: string): AtlasChat | undefined {
+  return getAtlasChats().find(c => c.friendId === friendId)
+}
+
+export function saveAtlasChat(chat: AtlasChat): void {
+  const list = getAtlasChats()
+  const idx  = list.findIndex(c => c.friendId === chat.friendId)
+  if (idx >= 0) list[idx] = chat
+  else list.push(chat)
+  localStorage.setItem(ATLAS_CHAT_KEY, JSON.stringify(list))
+}
+
+export function deleteAtlasChat(friendId: string): void {
+  const list = getAtlasChats().filter(c => c.friendId !== friendId)
+  localStorage.setItem(ATLAS_CHAT_KEY, JSON.stringify(list))
+}
+
+export function replaceFriends(friends: Friend[]): void {
+  localStorage.setItem(FRIENDS_KEY, JSON.stringify(friends))
+}
+
+export function replaceAtlasList(atlasList: Atlas[]): void {
+  localStorage.setItem(ATLAS_KEY, JSON.stringify(atlasList))
+}
+
+export function replaceAtlasChats(chats: AtlasChat[]): void {
+  localStorage.setItem(ATLAS_CHAT_KEY, JSON.stringify(chats))
 }
