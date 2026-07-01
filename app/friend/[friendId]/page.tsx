@@ -1,8 +1,8 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
-import { getFriends, saveFriend } from '@/lib/store'
-import { pushFriend } from '@/lib/supabase'
+import { useParams, useRouter } from 'next/navigation'
+import { getFriends, saveFriend, deleteFriend } from '@/lib/store'
+import { pushFriend, deleteFriendRemote } from '@/lib/supabase'
 import type { Friend, Memory } from '@/lib/types'
 import FriendForm from '@/components/FriendForm'
 import MemoryTimeline from '@/components/MemoryTimeline'
@@ -10,6 +10,7 @@ import Link from 'next/link'
 
 export default function EditFriendPage() {
   const { friendId } = useParams<{ friendId: string }>()
+  const router = useRouter()
   const [friend, setFriend] = useState<Friend | null | undefined>(undefined)
 
   useEffect(() => {
@@ -27,6 +28,14 @@ export default function EditFriendPage() {
     setFriend(updated)
     saveFriend(updated)
     pushFriend(updated).catch(console.error)
+  }
+
+  function handleDelete() {
+    if (!friend) return
+    if (!window.confirm(`确定要删除「${friend.name}」吗？这个操作无法撤销。`)) return
+    deleteFriend(friend.id)
+    deleteFriendRemote(friend.id).catch(console.error)
+    router.push('/')
   }
 
   if (friend === undefined) {
@@ -82,6 +91,13 @@ export default function EditFriendPage() {
             }}>✦ 生成图鉴</Link>
           </div>
         )}
+        <div style={{ marginTop:56, textAlign:'center' }}>
+          <button type="button" onClick={handleDelete} style={{
+            background:'none', border:'1px solid rgba(239,68,68,0.3)', borderRadius:10,
+            color:'rgba(252,165,165,0.75)', fontSize:11, letterSpacing:2, padding:'8px 20px',
+            cursor:'pointer',
+          }}>删除好友</button>
+        </div>
       </div>
     </main>
   )

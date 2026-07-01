@@ -20,6 +20,11 @@ export async function pushFriend(friend: Friend): Promise<void> {
   })
 }
 
+export async function deleteFriendRemote(id: string): Promise<void> {
+  if (!supabase) return
+  await supabase.from('friends').delete().eq('id', id)
+}
+
 export async function pushAtlas(atlas: Atlas): Promise<void> {
   if (!supabase) return
   await supabase.from('atlas').upsert({
