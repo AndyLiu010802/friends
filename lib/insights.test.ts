@@ -72,4 +72,28 @@ describe('generateFriendInsights', () => {
     const insights = generateFriendInsights(friends, NOW)
     expect(insights[0].priority).toBe(3)
   })
+
+  it('flags a friend with a memory older than 60 days as inactive', () => {
+    const friend = baseFriend({
+      name: 'Jason',
+      memories: [{ id:'m1', date:'2026-04-01', title:'t', content:'', tags:[], media:[] }],
+    })
+    const insights = generateFriendInsights([friend], NOW)
+    const inactive = insights.find(i => i.type === 'inactive')
+    expect(inactive).toBeDefined()
+    expect(inactive!.priority).toBe(2)
+    expect(inactive!.text).toContain('天')
+  })
+
+  it('flags a friend with a memory in the last 7 days as recent-memory', () => {
+    const friend = baseFriend({
+      name: 'Emma',
+      memories: [{ id:'m1', date:'2026-06-28', title:'t', content:'', tags:[], media:[] }],
+    })
+    const insights = generateFriendInsights([friend], NOW)
+    const recent = insights.find(i => i.type === 'recent-memory')
+    expect(recent).toBeDefined()
+    expect(recent!.priority).toBe(2)
+    expect(recent!.text).toContain('Emma')
+  })
 })
