@@ -1,12 +1,13 @@
 'use client'
 import { useState } from 'react'
-import type { Friend } from '@/lib/types'
+import type { Friend, Relationship } from '@/lib/types'
 import { getZodiac } from '@/lib/zodiac'
 import { generateStarConfig } from '@/lib/starGen'
 import { findSafePosition } from '@/lib/poissonDisk'
 import { saveFriend, getFriends } from '@/lib/store'
 import { pushFriend } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import RelationshipEditor from './RelationshipEditor'
 
 const MBTI_OPTIONS = ['INTJ','INTP','ENTJ','ENTP','INFJ','INFP','ENFJ','ENFP',
   'ISTJ','ISFJ','ESTJ','ESFJ','ISTP','ISFP','ESTP','ESFP']
@@ -23,6 +24,7 @@ export default function FriendForm({ initial }: Props) {
   const [dislikes,setDislikes]= useState(initial?.dislikes.join(', ') ?? '')
   const [hobbies, setHobbies] = useState(initial?.hobbies.join(', ') ?? '')
   const [notes,   setNotes]   = useState(initial?.notes ?? '')
+  const [rels,    setRels]    = useState<Relationship[]>(initial?.relationships ?? [])
   const [saving,  setSaving]  = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
@@ -47,7 +49,7 @@ export default function FriendForm({ initial }: Props) {
       hobbies:  hobbies.split(',').map(s=>s.trim()).filter(Boolean),
       portraits: initial?.portraits ?? [],
       memories:  initial?.memories  ?? [],
-      relationships: initial?.relationships ?? [],
+      relationships: rels,
       notes:    notes || undefined,
       starConfig,
       atlasId:  initial?.atlasId,
@@ -87,6 +89,13 @@ export default function FriendForm({ initial }: Props) {
       {field('喜欢的东西（逗号分隔）', <input value={likes} onChange={e=>setLikes(e.target.value)} style={inputStyle}/>)}
       {field('讨厌的东西（逗号分隔）', <input value={dislikes} onChange={e=>setDislikes(e.target.value)} style={inputStyle}/>)}
       {field('兴趣爱好（逗号分隔）', <input value={hobbies} onChange={e=>setHobbies(e.target.value)} style={inputStyle}/>)}
+      {initial && field('共同好友',
+        <RelationshipEditor
+          currentFriendId={initial.id}
+          relationships={rels}
+          onChange={setRels}
+        />
+      )}
       {field('备注', <textarea value={notes} onChange={e=>setNotes(e.target.value)} rows={3} style={{...inputStyle,resize:'vertical'}}/>)}
 
       <button type="submit" disabled={saving} style={{
