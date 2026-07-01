@@ -24,7 +24,7 @@ export function generateStarConfig(
   position: [number, number, number]
 ): StarConfig {
   const prefix = mbti?.slice(0, 2).toUpperCase()
-  const kind: StarKind = (prefix && KIND_MAP[prefix]) ?? 'nebula'
+  const kind: StarKind = (prefix ? KIND_MAP[prefix] : undefined) ?? 'nebula'
 
   const element = zodiac ? getZodiacElement(zodiac) : null
   const { core: coreColor, glow: glowColor } = element
