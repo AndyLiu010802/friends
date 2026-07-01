@@ -25,18 +25,20 @@ export default function AtlasPage() {
   async function generate() {
     if (!friend) return
     setLoading(true)
-    const res  = await fetch('/api/generate-atlas', { method:'POST', body:JSON.stringify(friend), headers:{'Content-Type':'application/json'} })
-    const data: Atlas = await res.json()
-    saveAtlas(data)
-    await pushAtlas(data).catch(console.error)
-    setAtlas(data)
+    try {
+      const res  = await fetch('/api/generate-atlas', { method:'POST', body:JSON.stringify(friend), headers:{'Content-Type':'application/json'} })
+      const data: Atlas = await res.json()
+      saveAtlas(data)
+      await pushAtlas(data).catch(console.error)
+      setAtlas(data)
 
-    const updated: Friend = { ...friend, atlasId: data.id, updatedAt: new Date().toISOString() }
-    setFriend(updated)
-    saveFriend(updated)
-    pushFriend(updated).catch(console.error)
-
-    setLoading(false)
+      const updated: Friend = { ...friend, atlasId: data.id, updatedAt: new Date().toISOString() }
+      setFriend(updated)
+      saveFriend(updated)
+      pushFriend(updated).catch(console.error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (friend === undefined) {
