@@ -46,7 +46,7 @@ export default function HomePage() {
       {!entered && <OrreryEntry onEnter={() => setEntered(true)} />}
       {entered && (
         <>
-          <StarMap selectedFriendId={selectedFriendId} />
+          <StarMap selectedFriendId={selectedFriendId} onDeselect={() => setSelectedFriendId(null)} />
           <InsightPanel friends={friends} onSelectFriend={setSelectedFriendId} />
         </>
       )}

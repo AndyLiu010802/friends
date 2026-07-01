@@ -14,15 +14,17 @@ import * as THREE from 'three'
 
 interface Props {
   selectedFriendId?: string | null
+  onDeselect?: () => void
 }
 
-export default function StarMap({ selectedFriendId = null }: Props) {
+export default function StarMap({ selectedFriendId = null, onDeselect }: Props) {
   const threeRef = useRef<HTMLCanvasElement>(null)
   const trailRef = useRef<HTMLCanvasElement>(null)
   const [hoveredFriend, setHoveredFriend] = useState<Friend | null>(null)
   const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 })
   const [pinnedFriend, setPinnedFriend] = useState<Friend | null>(null)
   const [pinnedPos, setPinnedPos] = useState<{ x: number; y: number } | null>(null)
+  const [friendsLoaded, setFriendsLoaded] = useState(false)
   const starsRef  = useRef<StarObject[]>([])
   const linesRef  = useRef<LineObject[]>([])
   const pinnedFriendIdRef = useRef<string | null>(null)
@@ -39,6 +41,7 @@ export default function StarMap({ selectedFriendId = null }: Props) {
     pullAll().then(() => {
       const friends = getFriends()
       friendsRef.current = friends
+      setFriendsLoaded(true)
       const stars   = friends.map(f => buildStar(f))
       starsRef.current = stars
       stars.forEach(s => pivot.add(s.root))
@@ -112,6 +115,7 @@ export default function StarMap({ selectedFriendId = null }: Props) {
         setPinnedFriend(null)
         setPinnedPos(null)
         highlightLines(linesRef.current, null)
+        onDeselect?.()
       }
     }
 
@@ -121,6 +125,7 @@ export default function StarMap({ selectedFriendId = null }: Props) {
         setPinnedFriend(null)
         setPinnedPos(null)
         highlightLines(linesRef.current, null)
+        onDeselect?.()
       }
     }
 
@@ -160,7 +165,7 @@ export default function StarMap({ selectedFriendId = null }: Props) {
     setPinnedFriend(friend)
     setPinnedPos({ x: window.innerWidth / 2 - 130, y: window.innerHeight / 2 - 80 })
     highlightLines(linesRef.current, friend.id)
-  }, [selectedFriendId])
+  }, [selectedFriendId, friendsLoaded])
 
   return (
     <>
@@ -181,6 +186,7 @@ export default function StarMap({ selectedFriendId = null }: Props) {
             setPinnedFriend(null)
             setPinnedPos(null)
             highlightLines(linesRef.current, null)
+            onDeselect?.()
           }}
           style={{ left: pinnedPos.x, top: pinnedPos.y }}
         />

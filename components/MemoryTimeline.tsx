@@ -56,6 +56,7 @@ export default function MemoryTimeline({ friendId, memories, onChange }: Props) 
   }
 
   function deleteMemory(id: string) {
+    if (!window.confirm('确定要删除这条回忆吗？这个操作无法撤销。')) return
     onChange(memories.filter(m => m.id !== id))
   }
 
