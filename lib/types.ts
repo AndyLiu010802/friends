@@ -43,9 +43,10 @@ export interface Friend {
   id: string
   name: string
   nickname?: string
-  birthday: string     // YYYY-MM-DD
-  zodiac: string
-  mbti: string
+  birthday?: string
+  zodiac?: string
+  mbti?: string
+  important: boolean
   likes: string[]
   dislikes: string[]
   hobbies: string[]
