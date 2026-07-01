@@ -7,6 +7,9 @@ import { calculateFriendEnergy } from '@/lib/friendEnergy'
 import { generateConversationHint } from '@/lib/conversationHint'
 import { getBirthdayStatus } from '@/lib/birthdayStatus'
 import { calculateProfileCompletion } from '@/lib/profileCompletion'
+import { getFriends } from '@/lib/store'
+import { getSharedTags } from '@/lib/sharedTags'
+import { isLonelyStar } from '@/lib/lonelyStar'
 
 interface Props {
   friend: Friend
@@ -21,6 +24,13 @@ export default function FriendCard({ friend, style, pinned, onClose }: Props) {
   const hint = generateConversationHint(friend)
   const birthday = getBirthdayStatus(friend.birthday)
   const completion = calculateProfileCompletion(friend)
+  const lonely = isLonelyStar(friend)
+  const latestMemory = [...friend.memories].sort((a, b) => b.date.localeCompare(a.date))[0]
+  const firstRelationship = friend.relationships[0]
+  const relatedFriend = firstRelationship
+    ? getFriends().find(f => f.id === firstRelationship.friendId)
+    : undefined
+  const sharedTags = relatedFriend ? getSharedTags(friend, relatedFriend) : []
 
   const meta = [friend.mbti, friend.zodiac, growth.label].filter(Boolean).join(' · ')
   const energyPercent = Math.round(Math.min(energy.score / 15, 1) * 100)
@@ -57,6 +67,12 @@ export default function FriendCard({ friend, style, pinned, onClose }: Props) {
         <div style={{ color:'rgba(155,142,196,0.7)' }}>{energy.lastActivityText}</div>
       </div>
 
+      {latestMemory && (
+        <div style={{ marginTop:8, fontSize:11, color:'#e2e8f0', lineHeight:1.6 }}>
+          最近回忆：{latestMemory.title} · {latestMemory.date}
+        </div>
+      )}
+
       <div style={{ marginTop:8, fontSize:11, color:'rgba(226,185,111,0.85)', lineHeight:1.6 }}>
         下次可以聊：{hint}
       </div>
@@ -65,6 +81,24 @@ export default function FriendCard({ friend, style, pinned, onClose }: Props) {
         <div style={{ marginTop:8, fontSize:10, color:'rgba(155,142,196,0.6)', lineHeight:1.6 }}>
           档案完整度：{completion.percent}%<br/>
           建议补充：{completion.missing.join('、')}
+        </div>
+      )}
+
+      {friend.relationships.length > 0 && (
+        <div style={{ marginTop:8, fontSize:10, color:'rgba(155,142,196,0.6)' }}>
+          已连接 {friend.relationships.length} 位朋友
+        </div>
+      )}
+
+      {sharedTags.length > 0 && (
+        <div style={{ marginTop:4, fontSize:10, color:'rgba(155,142,196,0.6)' }}>
+          共同标签：{sharedTags.join('、')}
+        </div>
+      )}
+
+      {lonely && (
+        <div style={{ marginTop:8, fontSize:10, color:'rgba(226,185,111,0.6)', lineHeight:1.6 }}>
+          这还是一颗孤星。<br/>建议：添加一条回忆，或者连接一个共同朋友。
         </div>
       )}
 

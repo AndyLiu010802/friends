@@ -12,15 +12,23 @@ import { pullAll } from '@/lib/supabase'
 import type { Friend } from '@/lib/types'
 import * as THREE from 'three'
 
-export default function StarMap() {
+interface Props {
+  selectedFriendId?: string | null
+  onDeselect?: () => void
+}
+
+export default function StarMap({ selectedFriendId = null, onDeselect }: Props) {
   const threeRef = useRef<HTMLCanvasElement>(null)
   const trailRef = useRef<HTMLCanvasElement>(null)
   const [hoveredFriend, setHoveredFriend] = useState<Friend | null>(null)
   const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 })
   const [pinnedFriend, setPinnedFriend] = useState<Friend | null>(null)
   const [pinnedPos, setPinnedPos] = useState<{ x: number; y: number } | null>(null)
+  const [friendsLoaded, setFriendsLoaded] = useState(false)
   const starsRef  = useRef<StarObject[]>([])
   const linesRef  = useRef<LineObject[]>([])
+  const pinnedFriendIdRef = useRef<string | null>(null)
+  const friendsRef = useRef<Friend[]>([])
 
   useEffect(() => {
     const { renderer, scene, camera, pivot } = initScene(threeRef.current!)
@@ -32,6 +40,8 @@ export default function StarMap() {
     // Load friends
     pullAll().then(() => {
       const friends = getFriends()
+      friendsRef.current = friends
+      setFriendsLoaded(true)
       const stars   = friends.map(f => buildStar(f))
       starsRef.current = stars
       stars.forEach(s => pivot.add(s.root))
@@ -65,11 +75,11 @@ export default function StarMap() {
         const friend = getFriends().find(f => f.id === star.friendId) ?? null
         setHoveredFriend(friend)
         setHoverPos({ x: e.clientX + 22, y: e.clientY - 12 })
-        highlightLines(linesRef.current, star.friendId)
+        highlightLines(linesRef.current, pinnedFriendIdRef.current ?? star.friendId)
         gsap.to(star.root.scale, { x:1.22, y:1.22, z:1.22, duration:.3, ease:'back.out(2)' })
       } else {
         setHoveredFriend(null)
-        highlightLines(linesRef.current, null)
+        highlightLines(linesRef.current, pinnedFriendIdRef.current)
         starsRef.current.forEach(s => gsap.to(s.root.scale, { x:1, y:1, z:1, duration:.3 }))
       }
     }
@@ -96,16 +106,27 @@ export default function StarMap() {
       if (hits.length) {
         const star = starsRef.current.find(s => s.hitMesh === hits[0].object)!
         const friend = getFriends().find(f => f.id === star.friendId) ?? null
+        pinnedFriendIdRef.current = friend?.id ?? null
         setPinnedFriend(friend)
         setPinnedPos({ x: e.clientX + 22, y: e.clientY - 12 })
+        highlightLines(linesRef.current, pinnedFriendIdRef.current)
       } else {
+        pinnedFriendIdRef.current = null
         setPinnedFriend(null)
         setPinnedPos(null)
+        highlightLines(linesRef.current, null)
+        onDeselect?.()
       }
     }
 
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { setPinnedFriend(null); setPinnedPos(null) }
+      if (e.key === 'Escape') {
+        pinnedFriendIdRef.current = null
+        setPinnedFriend(null)
+        setPinnedPos(null)
+        highlightLines(linesRef.current, null)
+        onDeselect?.()
+      }
     }
 
     const onWheel = (e: WheelEvent) => {
@@ -136,6 +157,16 @@ export default function StarMap() {
     }
   }, [])
 
+  useEffect(() => {
+    if (!selectedFriendId) return
+    const friend = friendsRef.current.find(f => f.id === selectedFriendId)
+    if (!friend) return
+    pinnedFriendIdRef.current = friend.id
+    setPinnedFriend(friend)
+    setPinnedPos({ x: window.innerWidth / 2 - 130, y: window.innerHeight / 2 - 80 })
+    highlightLines(linesRef.current, friend.id)
+  }, [selectedFriendId, friendsLoaded])
+
   return (
     <>
       <canvas ref={threeRef} style={{ position:'fixed', inset:0, cursor:'none' }} />
@@ -150,7 +181,13 @@ export default function StarMap() {
         <FriendCard
           friend={pinnedFriend}
           pinned
-          onClose={() => { setPinnedFriend(null); setPinnedPos(null) }}
+          onClose={() => {
+            pinnedFriendIdRef.current = null
+            setPinnedFriend(null)
+            setPinnedPos(null)
+            highlightLines(linesRef.current, null)
+            onDeselect?.()
+          }}
           style={{ left: pinnedPos.x, top: pinnedPos.y }}
         />
       )}
