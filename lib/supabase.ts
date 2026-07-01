@@ -59,7 +59,7 @@ export async function uploadMedia(
 
 export async function backupToCloud(payload: CloudBackupPayload): Promise<void> {
   if (!supabase) return
-  await supabase.from('friend_backups').upsert({
+  const { error } = await supabase.from('friend_backups').upsert({
     id: payload.id,
     backup_name: payload.backupName,
     friends: payload.friends,
@@ -67,6 +67,7 @@ export async function backupToCloud(payload: CloudBackupPayload): Promise<void> 
     ai_chats: payload.aiChats,
     updated_at: new Date().toISOString(),
   })
+  if (error) throw error
 }
 
 export async function listCloudBackups(): Promise<CloudBackupSummary[]> {
@@ -103,12 +104,13 @@ export async function restoreFromCloud(backupId: string): Promise<CloudBackupPay
 
 export async function saveAtlasChatRemote(chat: AtlasChat): Promise<void> {
   if (!supabase) return
-  await supabase.from('atlas_chats').upsert({
+  const { error } = await supabase.from('atlas_chats').upsert({
     id: chat.id,
     friend_id: chat.friendId,
     messages: chat.messages,
     updated_at: new Date().toISOString(),
   })
+  if (error) throw error
 }
 
 export async function getAtlasChatRemote(friendId: string): Promise<AtlasChat | null> {
