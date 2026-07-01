@@ -2,6 +2,11 @@
 import type { CSSProperties } from 'react'
 import type { Friend } from '@/lib/types'
 import Link from 'next/link'
+import { getGrowthStage } from '@/lib/growthStage'
+import { calculateFriendEnergy } from '@/lib/friendEnergy'
+import { generateConversationHint } from '@/lib/conversationHint'
+import { getBirthdayStatus } from '@/lib/birthdayStatus'
+import { calculateProfileCompletion } from '@/lib/profileCompletion'
 
 interface Props {
   friend: Friend
@@ -11,18 +16,25 @@ interface Props {
 }
 
 export default function FriendCard({ friend, style, pinned, onClose }: Props) {
-  const meta = [friend.mbti, friend.zodiac].filter(Boolean).join(' · ')
+  const growth = getGrowthStage(friend)
+  const energy = calculateFriendEnergy(friend)
+  const hint = generateConversationHint(friend)
+  const birthday = getBirthdayStatus(friend.birthday)
+  const completion = calculateProfileCompletion(friend)
+
+  const meta = [friend.mbti, friend.zodiac, growth.label].filter(Boolean).join(' · ')
+  const energyPercent = Math.round(Math.min(energy.score / 15, 1) * 100)
 
   return (
     <div style={{
-      position:'fixed', zIndex:20, minWidth:160,
+      position:'fixed', zIndex:20, minWidth:220, maxWidth:260,
       background:'rgba(4,7,20,0.94)', border:'1px solid rgba(226,185,111,0.3)',
-      borderRadius:12, padding:'14px 20px',
+      borderRadius:12, padding:'16px 20px',
       backdropFilter:'blur(12px)', pointerEvents:'auto',
       ...style,
     }}>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:12 }}>
-        <div style={{ color:'#e2b96f', fontSize:15 }}>{friend.name}</div>
+        <div style={{ color:'#e2b96f', fontSize:16 }}>{friend.name}</div>
         {pinned && (
           <button type="button" onClick={onClose} style={{
             background:'none', border:'none', color:'rgba(226,185,111,0.5)',
@@ -30,11 +42,33 @@ export default function FriendCard({ friend, style, pinned, onClose }: Props) {
           }}>✕</button>
         )}
       </div>
-      <div style={{ color:'rgba(155,142,196,0.75)', fontSize:10, lineHeight:1.8, marginTop:4 }}>
-        {meta}<br/>
-        {friend.nickname ?? ''}
+
+      {meta && <div style={{ color:'rgba(155,142,196,0.75)', fontSize:10, marginTop:4 }}>{meta}</div>}
+
+      {(friend.important || birthday.label) && (
+        <div style={{ display:'flex', gap:8, marginTop:6, flexWrap:'wrap' }}>
+          {friend.important && <span style={{ color:'#e2b96f', fontSize:10 }}>✦ 重要</span>}
+          {birthday.label && <span style={{ color:'#e2b96f', fontSize:10 }}>{birthday.label}</span>}
+        </div>
+      )}
+
+      <div style={{ marginTop:10, fontSize:11, color:'#e2e8f0', lineHeight:1.8 }}>
+        <div>关系温度：{energy.level}（{energyPercent}%）</div>
+        <div style={{ color:'rgba(155,142,196,0.7)' }}>{energy.lastActivityText}</div>
       </div>
-      <div style={{ marginTop:10, display:'flex', gap:8 }}>
+
+      <div style={{ marginTop:8, fontSize:11, color:'rgba(226,185,111,0.85)', lineHeight:1.6 }}>
+        下次可以聊：{hint}
+      </div>
+
+      {completion.percent < 100 && (
+        <div style={{ marginTop:8, fontSize:10, color:'rgba(155,142,196,0.6)', lineHeight:1.6 }}>
+          档案完整度：{completion.percent}%<br/>
+          建议补充：{completion.missing.join('、')}
+        </div>
+      )}
+
+      <div style={{ marginTop:12, display:'flex', gap:8 }}>
         <Link href={`/friend/${friend.id}`}
           style={{ color:'#e2b96f', fontSize:10, letterSpacing:1, textDecoration:'none',
             border:'1px solid rgba(226,185,111,0.3)', borderRadius:10, padding:'4px 10px' }}>
