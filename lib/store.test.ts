@@ -4,7 +4,7 @@ import type { Friend } from './types'
 
 const MOCK_FRIEND: Friend = {
   id: 'f1', name: '小雨', birthday: '1999-06-05', zodiac: '双子座',
-  mbti: 'ENFP', likes: [], dislikes: [], hobbies: [],
+  mbti: 'ENFP', important: false, likes: [], dislikes: [], hobbies: [],
   portraits: [], memories: [], relationships: [],
   starConfig: { kind:'radiant', coreColor:'#38bdf8', glowColor:'#818cf8',
     size:1, twinkleSpeed:2, position:[0,0,0] },
@@ -33,5 +33,21 @@ describe('store', () => {
     saveFriend(MOCK_FRIEND)
     deleteFriend('f1')
     expect(getFriends()).toHaveLength(0)
+  })
+  it('backfills important:false for legacy records missing the field', () => {
+    const legacy = { ...MOCK_FRIEND } as Partial<Friend>
+    delete legacy.important
+    localStorage.setItem('yj_friends', JSON.stringify([legacy]))
+    const friends = getFriends()
+    expect(friends[0].important).toBe(false)
+  })
+  it('defaults missing array fields to empty arrays for legacy records', () => {
+    const legacy = { id: 'f2', name: 'Old Friend', createdAt: '2026-01-01', updatedAt: '2026-01-01' }
+    localStorage.setItem('yj_friends', JSON.stringify([legacy]))
+    const friends = getFriends()
+    expect(friends[0].likes).toEqual([])
+    expect(friends[0].memories).toEqual([])
+    expect(friends[0].relationships).toEqual([])
+    expect(friends[0].starConfig.kind).toBe('nebula')
   })
 })
