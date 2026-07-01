@@ -1,13 +1,27 @@
+// app/page.tsx
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import OrreryEntry from '@/components/StarMap/OrreryEntry'
+import InsightPanel from '@/components/InsightPanel'
+import { getFriends } from '@/lib/store'
+import { pullAll } from '@/lib/supabase'
+import type { Friend } from '@/lib/types'
 
 const StarMap = dynamic(() => import('@/components/StarMap/StarMap'), { ssr: false })
 
 export default function HomePage() {
   const [entered, setEntered] = useState(false)
+  const [friends, setFriends] = useState<Friend[]>([])
+  const [selectedFriendId, setSelectedFriendId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!entered) return
+    pullAll()
+      .catch(console.error)
+      .finally(() => setFriends(getFriends()))
+  }, [entered])
 
   return (
     <>
@@ -31,7 +45,12 @@ export default function HomePage() {
       )}
 
       {!entered && <OrreryEntry onEnter={() => setEntered(true)} />}
-      {entered  && <StarMap />}
+      {entered && (
+        <>
+          <StarMap selectedFriendId={selectedFriendId} />
+          <InsightPanel friends={friends} onSelectFriend={setSelectedFriendId} />
+        </>
+      )}
     </>
   )
 }
