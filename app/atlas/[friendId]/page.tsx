@@ -79,7 +79,11 @@ export default function AtlasPage() {
         <div style={{ textAlign:'center', marginBottom:40 }}>
           <div style={{ color:'rgba(155,142,196,0.5)', fontSize:10, letterSpacing:3, marginBottom:8 }}>FRIEND ATLAS</div>
           <h1 style={{ color:'#e2b96f', fontFamily:'Ma Shan Zheng, cursive', fontSize:36, letterSpacing:6 }}>{friend.name}</h1>
-          <div style={{ color:'rgba(155,142,196,0.6)', fontSize:11, marginTop:6 }}>{friend.mbti} · {friend.zodiac}</div>
+          {[friend.mbti, friend.zodiac].filter(Boolean).join(' · ') && (
+            <div style={{ color:'rgba(155,142,196,0.6)', fontSize:11, marginTop:6 }}>
+              {[friend.mbti, friend.zodiac].filter(Boolean).join(' · ')}
+            </div>
+          )}
         </div>
 
         {!atlas && (
