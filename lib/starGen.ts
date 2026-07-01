@@ -15,20 +15,25 @@ const ELEMENT_COLORS: Record<string, { core: string; glow: string }> = {
   water: { core: '#7c3aed', glow: '#ec4899' },
 }
 
+const UNKNOWN_ELEMENT_COLOR = { core: '#94a3b8', glow: '#cbd5e1' }
+
 export function generateStarConfig(
-  mbti: string,
-  zodiac: string,
+  mbti: string | undefined,
+  zodiac: string | undefined,
   hobbies: string[],
   position: [number, number, number]
 ): StarConfig {
-  const prefix = mbti.slice(0, 2).toUpperCase() as keyof typeof KIND_MAP
-  const kind: StarKind = KIND_MAP[prefix] ?? 'radiant'
-  const element = getZodiacElement(zodiac)
-  const { core: coreColor, glow: glowColor } = ELEMENT_COLORS[element]
+  const prefix = mbti?.slice(0, 2).toUpperCase()
+  const kind: StarKind = (prefix && KIND_MAP[prefix]) ?? 'nebula'
+
+  const element = zodiac ? getZodiacElement(zodiac) : null
+  const { core: coreColor, glow: glowColor } = element
+    ? ELEMENT_COLORS[element]
+    : UNKNOWN_ELEMENT_COLOR
 
   const hasArt     = hobbies.some(h => /音乐|艺术|绘画|摄影/.test(h))
   const hasSport   = hobbies.some(h => /运动|健身|户外|爬山/.test(h))
-  const isIntrovert = mbti[0].toUpperCase() === 'I'
+  const isIntrovert = mbti?.[0]?.toUpperCase() === 'I'
 
   const size = kind === 'giant' ? 1.3
     : isIntrovert ? 0.75
