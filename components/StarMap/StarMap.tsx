@@ -12,7 +12,11 @@ import { pullAll } from '@/lib/supabase'
 import type { Friend } from '@/lib/types'
 import * as THREE from 'three'
 
-export default function StarMap() {
+interface Props {
+  selectedFriendId?: string | null
+}
+
+export default function StarMap({ selectedFriendId = null }: Props) {
   const threeRef = useRef<HTMLCanvasElement>(null)
   const trailRef = useRef<HTMLCanvasElement>(null)
   const [hoveredFriend, setHoveredFriend] = useState<Friend | null>(null)
@@ -22,6 +26,7 @@ export default function StarMap() {
   const starsRef  = useRef<StarObject[]>([])
   const linesRef  = useRef<LineObject[]>([])
   const pinnedFriendIdRef = useRef<string | null>(null)
+  const friendsRef = useRef<Friend[]>([])
 
   useEffect(() => {
     const { renderer, scene, camera, pivot } = initScene(threeRef.current!)
@@ -33,6 +38,7 @@ export default function StarMap() {
     // Load friends
     pullAll().then(() => {
       const friends = getFriends()
+      friendsRef.current = friends
       const stars   = friends.map(f => buildStar(f))
       starsRef.current = stars
       stars.forEach(s => pivot.add(s.root))
@@ -145,6 +151,16 @@ export default function StarMap() {
       disposeScene()
     }
   }, [])
+
+  useEffect(() => {
+    if (!selectedFriendId) return
+    const friend = friendsRef.current.find(f => f.id === selectedFriendId)
+    if (!friend) return
+    pinnedFriendIdRef.current = friend.id
+    setPinnedFriend(friend)
+    setPinnedPos({ x: window.innerWidth / 2 - 130, y: window.innerHeight / 2 - 80 })
+    highlightLines(linesRef.current, friend.id)
+  }, [selectedFriendId])
 
   return (
     <>
