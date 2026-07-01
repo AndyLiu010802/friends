@@ -21,6 +21,7 @@ export default function StarMap() {
   const [pinnedPos, setPinnedPos] = useState<{ x: number; y: number } | null>(null)
   const starsRef  = useRef<StarObject[]>([])
   const linesRef  = useRef<LineObject[]>([])
+  const pinnedFriendIdRef = useRef<string | null>(null)
 
   useEffect(() => {
     const { renderer, scene, camera, pivot } = initScene(threeRef.current!)
@@ -65,11 +66,11 @@ export default function StarMap() {
         const friend = getFriends().find(f => f.id === star.friendId) ?? null
         setHoveredFriend(friend)
         setHoverPos({ x: e.clientX + 22, y: e.clientY - 12 })
-        highlightLines(linesRef.current, star.friendId)
+        highlightLines(linesRef.current, pinnedFriendIdRef.current ?? star.friendId)
         gsap.to(star.root.scale, { x:1.22, y:1.22, z:1.22, duration:.3, ease:'back.out(2)' })
       } else {
         setHoveredFriend(null)
-        highlightLines(linesRef.current, null)
+        highlightLines(linesRef.current, pinnedFriendIdRef.current)
         starsRef.current.forEach(s => gsap.to(s.root.scale, { x:1, y:1, z:1, duration:.3 }))
       }
     }
@@ -96,16 +97,25 @@ export default function StarMap() {
       if (hits.length) {
         const star = starsRef.current.find(s => s.hitMesh === hits[0].object)!
         const friend = getFriends().find(f => f.id === star.friendId) ?? null
+        pinnedFriendIdRef.current = friend?.id ?? null
         setPinnedFriend(friend)
         setPinnedPos({ x: e.clientX + 22, y: e.clientY - 12 })
+        highlightLines(linesRef.current, pinnedFriendIdRef.current)
       } else {
+        pinnedFriendIdRef.current = null
         setPinnedFriend(null)
         setPinnedPos(null)
+        highlightLines(linesRef.current, null)
       }
     }
 
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { setPinnedFriend(null); setPinnedPos(null) }
+      if (e.key === 'Escape') {
+        pinnedFriendIdRef.current = null
+        setPinnedFriend(null)
+        setPinnedPos(null)
+        highlightLines(linesRef.current, null)
+      }
     }
 
     const onWheel = (e: WheelEvent) => {
@@ -150,7 +160,12 @@ export default function StarMap() {
         <FriendCard
           friend={pinnedFriend}
           pinned
-          onClose={() => { setPinnedFriend(null); setPinnedPos(null) }}
+          onClose={() => {
+            pinnedFriendIdRef.current = null
+            setPinnedFriend(null)
+            setPinnedPos(null)
+            highlightLines(linesRef.current, null)
+          }}
           style={{ left: pinnedPos.x, top: pinnedPos.y }}
         />
       )}
