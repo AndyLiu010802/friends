@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
-import type { Friend, Atlas } from './types'
+import type { Friend, Atlas, AtlasChat, CloudBackupPayload, CloudBackupSummary } from './types'
 import { saveFriend, saveAtlas } from './store'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -55,6 +55,73 @@ export async function uploadMedia(
   if (error) throw error
   const { data } = supabase.storage.from('friend-media').getPublicUrl(path)
   return { url: data.publicUrl, thumbnailUrl: data.publicUrl }
+}
+
+export async function backupToCloud(payload: CloudBackupPayload): Promise<void> {
+  if (!supabase) return
+  await supabase.from('friend_backups').upsert({
+    id: payload.id,
+    backup_name: payload.backupName,
+    friends: payload.friends,
+    atlas_list: payload.atlasList,
+    ai_chats: payload.aiChats,
+    updated_at: new Date().toISOString(),
+  })
+}
+
+export async function listCloudBackups(): Promise<CloudBackupSummary[]> {
+  if (!supabase) return []
+  const { data } = await supabase
+    .from('friend_backups')
+    .select('id, backup_name, friends, atlas_list, ai_chats, created_at, updated_at')
+    .order('created_at', { ascending: false })
+  return (data ?? []).map(row => ({
+    id: row.id,
+    backupName: row.backup_name,
+    friendCount: Array.isArray(row.friends) ? row.friends.length : 0,
+    atlasCount: Array.isArray(row.atlas_list) ? row.atlas_list.length : 0,
+    chatCount: Array.isArray(row.ai_chats) ? row.ai_chats.length : 0,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }))
+}
+
+export async function restoreFromCloud(backupId: string): Promise<CloudBackupPayload | null> {
+  if (!supabase) return null
+  const { data } = await supabase.from('friend_backups').select('*').eq('id', backupId).single()
+  if (!data) return null
+  return {
+    id: data.id,
+    backupName: data.backup_name,
+    friends: data.friends as Friend[],
+    atlasList: data.atlas_list as Atlas[],
+    aiChats: data.ai_chats as AtlasChat[],
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+  }
+}
+
+export async function saveAtlasChatRemote(chat: AtlasChat): Promise<void> {
+  if (!supabase) return
+  await supabase.from('atlas_chats').upsert({
+    id: chat.id,
+    friend_id: chat.friendId,
+    messages: chat.messages,
+    updated_at: new Date().toISOString(),
+  })
+}
+
+export async function getAtlasChatRemote(friendId: string): Promise<AtlasChat | null> {
+  if (!supabase) return null
+  const { data } = await supabase.from('atlas_chats').select('*').eq('friend_id', friendId).maybeSingle()
+  if (!data) return null
+  return {
+    id: data.id,
+    friendId: data.friend_id,
+    messages: data.messages,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+  }
 }
 
 export { supabase }
