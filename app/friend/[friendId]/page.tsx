@@ -57,7 +57,7 @@ export default function EditFriendPage() {
 
   return (
     <main style={{
-      minHeight:'100vh', padding:'60px 24px 80px',
+      height:'100vh', padding:'60px 24px 80px', overflowY:'auto',
       background:'radial-gradient(ellipse at 30% 40%, #0d1b4b 0%, #020408 70%)',
     }}>
       <div style={{ width:'100%', maxWidth:560, margin:'0 auto' }}>

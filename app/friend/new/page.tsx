@@ -4,7 +4,7 @@ import Link from 'next/link'
 export default function NewFriendPage() {
   return (
     <main style={{
-      minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center',
+      height:'100vh', overflowY:'auto', display:'flex', flexDirection:'column', alignItems:'center',
       justifyContent:'flex-start', padding:'60px 24px 80px',
       background:'radial-gradient(ellipse at 30% 40%, #0d1b4b 0%, #020408 70%)',
     }}>

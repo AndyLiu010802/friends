@@ -69,7 +69,7 @@ export default function AtlasPage() {
 
   return (
     <main style={{
-      minHeight:'100vh', padding:'60px 24px 80px', overflowY:'auto',
+      height:'100vh', padding:'60px 24px 80px', overflowY:'auto',
       background:'radial-gradient(ellipse at 20% 30%, #0d1b4b 0%, #020408 70%)',
     }}>
       <div style={{ maxWidth:620, margin:'0 auto' }}>
