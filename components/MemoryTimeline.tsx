@@ -7,7 +7,7 @@ interface Props { friendId: string; memories: Memory[]; onChange: (m: Memory[]) 
 
 export default function MemoryTimeline({ friendId, memories, onChange }: Props) {
   const [adding, setAdding] = useState(false)
-  const [draft, setDraft] = useState<Partial<Memory>>({})
+  const [draft, setDraft] = useState<Omit<Partial<Memory>, 'tags'> & { tags?: string }>({})
 
   function saveMemory() {
     if (!draft.title || !draft.date) return
@@ -16,7 +16,7 @@ export default function MemoryTimeline({ friendId, memories, onChange }: Props) 
       date:    draft.date!,
       title:   draft.title!,
       content: draft.content ?? '',
-      tags:    (draft.tags as unknown as string ?? '').split(',').map((t:string)=>t.trim()).filter(Boolean),
+      tags:    (draft.tags ?? '').split(',').map(t=>t.trim()).filter(Boolean),
       media:   [],
     }
     onChange([...memories, mem].sort((a,b)=>b.date.localeCompare(a.date)))
@@ -43,7 +43,7 @@ export default function MemoryTimeline({ friendId, memories, onChange }: Props) 
           <input placeholder="日期" type="date" value={draft.date??''} onChange={e=>setDraft({...draft,date:e.target.value})} style={inp}/>
           <input placeholder="标题" value={draft.title??''} onChange={e=>setDraft({...draft,title:e.target.value})} style={inp}/>
           <textarea placeholder="描述" rows={3} value={draft.content??''} onChange={e=>setDraft({...draft,content:e.target.value})} style={{...inp,resize:'vertical'}}/>
-          <input placeholder="标签（逗号分隔）" value={(draft.tags as unknown as string)??''} onChange={e=>setDraft({...draft,tags:e.target.value as unknown as string[]})} style={inp}/>
+          <input placeholder="标签（逗号分隔）" value={draft.tags??''} onChange={e=>setDraft({...draft,tags:e.target.value})} style={inp}/>
           <button type="button" onClick={saveMemory} style={{...inp,width:'auto',cursor:'pointer',color:'#e2b96f'}}>保存</button>
         </div>
       )}

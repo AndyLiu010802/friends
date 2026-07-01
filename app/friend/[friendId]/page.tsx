@@ -13,10 +13,12 @@ export default function EditFriendPage() {
   const [friend, setFriend] = useState<Friend | null | undefined>(undefined)
 
   useEffect(() => {
-    Promise.resolve().then(() => {
-      const found = getFriends().find(f => f.id === friendId) ?? null
-      setFriend(found)
-    })
+    const found = getFriends().find(f => f.id === friendId) ?? null
+    // One-time client-only localStorage read keyed on friendId; not a subscription to an
+    // external system, and there's no render-time alternative since localStorage doesn't
+    // exist during SSR.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setFriend(found)
   }, [friendId])
 
   function handleMemoriesChange(memories: Memory[]) {
