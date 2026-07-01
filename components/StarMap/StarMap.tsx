@@ -96,7 +96,7 @@ export default function StarMap() {
 
   return (
     <>
-      <canvas ref={threeRef} style={{ position:'fixed', inset:0 }} />
+      <canvas ref={threeRef} style={{ position:'fixed', inset:0, cursor:'none' }} />
       <canvas ref={trailRef} style={{ position:'fixed', inset:0, pointerEvents:'none', zIndex:5 }} />
       {hoveredFriend && (
         <FriendCard
