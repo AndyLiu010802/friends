@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
-import { initScene } from './scene'
+import { initScene, disposeScene } from './scene'
 import { buildStarfield } from './starfield'
 import { initTrail } from './mouseTrail'
 import { buildStar, type StarObject } from './StarBuilder'
@@ -37,7 +37,7 @@ export default function StarMap() {
       const lines = buildConstellationLines(friends)
       linesRef.current = lines
       lines.forEach(l => pivot.add(l.line))
-    })
+    }).catch(console.error)
 
     // Raycaster for hover
     const raycaster = new THREE.Raycaster()
@@ -46,8 +46,8 @@ export default function StarMap() {
 
     const canvas = threeRef.current!
     const onMouseMove = (e: MouseEvent) => {
-      mouse.x =  (e.clientX / innerWidth)  * 2 - 1
-      mouse.y = -(e.clientY / innerHeight) * 2 + 1
+      mouse.x =  (e.clientX / window.innerWidth)  * 2 - 1
+      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1
       if (isDrag) {
         pivot.rotation.y += (e.clientX - lx) * 0.006
         pivot.rotation.x += (e.clientY - ly) * 0.004
@@ -69,12 +69,15 @@ export default function StarMap() {
         starsRef.current.forEach(s => gsap.to(s.root.scale, { x:1, y:1, z:1, duration:.3 }))
       }
     }
-    canvas.addEventListener('mousedown', e => { isDrag=true; lx=e.clientX; ly=e.clientY })
-    window.addEventListener('mouseup', () => isDrag=false)
-    window.addEventListener('mousemove', onMouseMove)
-    canvas.addEventListener('wheel', e => {
+    const onMouseDown = (e: MouseEvent) => { isDrag = true; lx = e.clientX; ly = e.clientY }
+    const onMouseUp = () => { isDrag = false }
+    const onWheel = (e: WheelEvent) => {
       camera.position.z = Math.max(3.5, Math.min(16, camera.position.z + e.deltaY * .007))
-    }, { passive: true })
+    }
+    canvas.addEventListener('mousedown', onMouseDown)
+    window.addEventListener('mouseup', onMouseUp)
+    window.addEventListener('mousemove', onMouseMove)
+    canvas.addEventListener('wheel', onWheel, { passive: true })
 
     // Render loop
     let raf: number
@@ -84,6 +87,10 @@ export default function StarMap() {
     return () => {
       cancelAnimationFrame(raf)
       window.removeEventListener('mousemove', onMouseMove)
+      window.removeEventListener('mouseup', onMouseUp)
+      canvas.removeEventListener('mousedown', onMouseDown)
+      canvas.removeEventListener('wheel', onWheel)
+      disposeScene()
     }
   }, [])
 
