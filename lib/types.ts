@@ -60,14 +60,77 @@ export interface Friend {
   updatedAt: string
 }
 
+export type AIQualityMode = 'economy' | 'standard' | 'premium'
+
+export interface AtlasEvidence {
+  type: 'memory' | 'like' | 'dislike' | 'hobby' | 'note' | 'relationship'
+  id?: string
+  date?: string
+  text: string
+}
+
 export interface Atlas {
   id: string
   friendId: string
   generatedAt: string
+  model: string
+
+  recordStats: {
+    memoryCount: number
+    relationshipCount: number
+    likesCount: number
+    dislikesCount: number
+    hobbiesCount: number
+    noteLength: number
+    confidence: 'low' | 'medium' | 'high'
+  }
+
   summary: string
-  personality: string
-  predictions: string
+  roleInMyLife: string
+  keyDetailsToRemember: string[]
+  recentInteractionInsight: string
+  conversationTopics: string[]
   giftIdeas: string[]
   warnings: string[]
+  suitableActivities: string[]
+  relationshipTrend: string
+
+  evidence: AtlasEvidence[]
   rawInput: Partial<Friend>
+}
+
+export interface AtlasChatMessage {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  createdAt: string
+  evidence?: AtlasEvidence[]
+}
+
+export interface AtlasChat {
+  id: string
+  friendId: string
+  messages: AtlasChatMessage[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CloudBackupPayload {
+  id: string
+  backupName: string
+  friends: Friend[]
+  atlasList: Atlas[]
+  aiChats: AtlasChat[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CloudBackupSummary {
+  id: string
+  backupName: string
+  friendCount: number
+  atlasCount: number
+  chatCount: number
+  createdAt: string
+  updatedAt: string
 }

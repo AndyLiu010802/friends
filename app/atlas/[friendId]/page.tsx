@@ -102,8 +102,8 @@ export default function AtlasPage() {
           <div style={{ display:'flex', flexDirection:'column', gap:24 }}>
             {[
               { label:'人物总结', content: atlas.summary },
-              { label:'性格分析', content: atlas.personality },
-              { label:'喜好预测', content: atlas.predictions },
+              { label:'你生活中的位置', content: atlas.roleInMyLife },
+              { label:'关系趋势', content: atlas.relationshipTrend },
             ].map(({ label, content }) => (
               <section key={label} style={{
                 background:'rgba(226,185,111,0.04)', border:'1px solid rgba(226,185,111,0.15)',
