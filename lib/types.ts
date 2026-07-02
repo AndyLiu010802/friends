@@ -60,8 +60,6 @@ export interface Friend {
   updatedAt: string
 }
 
-export type AIQualityMode = 'economy' | 'standard' | 'premium'
-
 export interface AtlasEvidence {
   type: 'memory' | 'like' | 'dislike' | 'hobby' | 'note' | 'relationship'
   id?: string
