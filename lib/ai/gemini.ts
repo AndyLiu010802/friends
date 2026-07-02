@@ -1,3 +1,5 @@
+// Server-only — GEMINI_API_KEY must never reach the client. Only import this from
+// API routes, never from a client component.
 import { GoogleGenAI } from '@google/genai'
 
 let client: GoogleGenAI | null = null
