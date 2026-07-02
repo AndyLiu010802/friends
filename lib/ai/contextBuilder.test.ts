@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import { buildFriendAtlasContext } from './contextBuilder'
+import { calculateAtlasConfidence } from '../atlasConfidence'
+import { calculateProfileCompletion } from '../profileCompletion'
+import { getGrowthStage } from '../growthStage'
+import { calculateFriendEnergy } from '../friendEnergy'
 import type { Friend } from '../types'
 
 function makeFriend(overrides: Partial<Friend>): Friend {
@@ -74,5 +78,31 @@ describe('buildFriendAtlasContext', () => {
     const context = buildFriendAtlasContext(friend, [friend])
     expect(context.memories[0]).toEqual({ id: 'm1', date: '2026-01-01', title: '合照', content: '拍了照片', tags: ['tag1'] })
     expect(Object.keys(context.memories[0])).not.toContain('media')
+  })
+
+  it('correctly maps all four delegated stats fields from their source functions', () => {
+    const memories = Array.from({ length: 8 }, (_, i) => ({
+      id: `m${i}`, date: `2026-01-${String(i + 1).padStart(2, '0')}`, title: 't', content: 'c', tags: [], media: [],
+    }))
+    const friend = makeFriend({
+      memories,
+      notes: '很聊得来', likes: ['咖啡'], hobbies: ['爬山'],
+      relationships: [{ friendId: 'f2', label: '同学', closeness: 2 }],
+    })
+    const context = buildFriendAtlasContext(friend, [friend])
+
+    // Cross-check against the actual dependency functions directly, so this test
+    // stays correct even if their internal scoring logic changes later — it's
+    // asserting "contextBuilder reads the right property," not "here's what the
+    // scoring algorithm currently outputs."
+    const expectedConfidence = calculateAtlasConfidence(friend)
+    const expectedCompletion = calculateProfileCompletion(friend)
+    const expectedStage = getGrowthStage(friend)
+    const expectedEnergy = calculateFriendEnergy(friend)
+
+    expect(context.stats.confidence).toBe(expectedConfidence.level)
+    expect(context.stats.profileCompletion).toBe(expectedCompletion.percent)
+    expect(context.stats.growthStage).toBe(expectedStage.stage)
+    expect(context.stats.energyLevel).toBe(expectedEnergy.level)
   })
 })
