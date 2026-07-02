@@ -19,6 +19,10 @@ export default function BackupPanel() {
   const [message, setMessage] = useState<string | null>(null)
 
   useEffect(() => {
+    // One-time client-only localStorage read on mount; not a subscription to an
+    // external system, and there's no render-time alternative since localStorage
+    // doesn't exist during SSR.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFriendCount(getFriends().length)
     setAtlasCount(getAtlasList().length)
     setChatCount(getAtlasChats().length)
