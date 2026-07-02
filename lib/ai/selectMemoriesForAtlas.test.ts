@@ -44,4 +44,29 @@ describe('selectMemoriesForAtlas', () => {
     const result = selectMemoriesForAtlas(makeFriend([...recent, earliest]))
     expect(result.some(m => m.id === 'earliest')).toBe(true)
   })
+
+  it('excludes a middling-date memory that only a correct desc/asc split leaves out', () => {
+    // 25 memories, strictly increasing dates Jan 1 (m0) .. Jan 25 (m24), no ties,
+    // identical content/tags so the length/tag-count/keyword buckets can't interfere
+    // and can't accidentally rescue the memory this test checks for.
+    //
+    // With the correct byDateDesc (most recent first) / byDateAsc (earliest first)
+    // assignment: 15 most recent = m10..m24, 3 earliest = m0..m2. m5 (Jan 6) falls
+    // in neither slice and is excluded.
+    //
+    // If byDateDesc/byDateAsc were swapped (each sort comparator kept, but bound to
+    // the other's variable name), the "recent" bucket would instead take the 15
+    // EARLIEST (m0..m14) and the "earliest" bucket would take the 3 MOST RECENT
+    // (m22..m24) -- so m5 would be INCLUDED (it's within the first 15 earliest).
+    //
+    // m5's presence/absence therefore flips between the correct and swapped
+    // implementations, making it a reliable discriminator that the two prior
+    // "earliest survives" / "keyword survives" tests do not provide.
+    const memories = Array.from({ length: 25 }, (_, i) =>
+      makeMemory({ id: `m${i}`, date: `2026-01-${String(i + 1).padStart(2, '0')}` })
+    )
+    const result = selectMemoriesForAtlas(makeFriend(memories))
+    const ids = result.map(m => m.id)
+    expect(ids).not.toContain('m5')
+  })
 })
