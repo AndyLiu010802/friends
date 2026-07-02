@@ -62,10 +62,15 @@ export default function AtlasPage() {
       }
 
       const newAtlas: Atlas = data.atlas
-      deleteAtlas(friend.id)
-      saveAtlas(newAtlas)
-      await pushAtlas(newAtlas).catch(() => setError('本地图鉴已保存，但云端备份失败。'))
       setAtlas(newAtlas)
+      try {
+        deleteAtlas(friend.id)
+        saveAtlas(newAtlas)
+      } catch {
+        setError('图鉴已生成但本地保存失败，请检查浏览器存储空间。')
+        return
+      }
+      await pushAtlas(newAtlas).catch(() => setError('本地图鉴已保存，但云端备份失败。'))
 
       const updated: Friend = { ...friend, atlasId: newAtlas.id, updatedAt: new Date().toISOString() }
       setFriend(updated)
@@ -146,9 +151,9 @@ export default function AtlasPage() {
         {premiumFailed && (
           <div style={{ textAlign:'center', marginBottom:16 }}>
             <div style={{ color:'#f87171', fontSize:12, marginBottom:8 }}>最高级模型暂时不可用，是否使用标准模式重试？</div>
-            <button onClick={() => generate('standard')} style={{
+            <button onClick={() => generate('standard')} disabled={loading} style={{
               padding:'8px 24px', background:'rgba(226,185,111,0.1)', border:'1px solid rgba(226,185,111,0.4)',
-              borderRadius:10, color:'#e2b96f', fontSize:12, cursor:'pointer' }}>用标准模式重试</button>
+              borderRadius:10, color:'#e2b96f', fontSize:12, cursor:'pointer' }}>{loading ? '重试中...' : '用标准模式重试'}</button>
           </div>
         )}
 
