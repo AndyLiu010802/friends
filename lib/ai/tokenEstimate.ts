@@ -23,7 +23,7 @@ const PRICING_USD_PER_1M: Record<string, { input: number; output: number }> = {
 }
 
 export function estimateTextTokens(text: string): number {
-  const chineseChars = (text.match(/[一-鿿]/g) ?? []).length
+  const chineseChars = (text.match(/[一-鿿，。！？、；：""''（）《》【】]/g) ?? []).length
   const otherChars = text.length - chineseChars
   return Math.ceil(chineseChars / 1.5 + otherChars / 4)
 }
@@ -37,7 +37,10 @@ function levelFor(costUsd: number): TokenEstimate['level'] {
 
 function estimate(inputText: string, model: string, outputTokens: number): TokenEstimate {
   const estimatedInputTokens = Math.ceil(estimateTextTokens(inputText) * 1.2)
-  const pricing = PRICING_USD_PER_1M[model] ?? { input: 0, output: 0 }
+  const pricing = PRICING_USD_PER_1M[model]
+  if (!pricing) {
+    throw new Error(`未知模型的定价信息缺失：${model}，请在 PRICING_USD_PER_1M 中补充。`)
+  }
   const estimatedCostUsd =
     (estimatedInputTokens / 1_000_000) * pricing.input +
     (outputTokens / 1_000_000) * pricing.output

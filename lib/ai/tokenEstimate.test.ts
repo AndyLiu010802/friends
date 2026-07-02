@@ -1,6 +1,16 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { estimateTextTokens, estimateAtlasGenerationCost, estimateAtlasQuestionCost, OUTPUT_LIMITS } from './tokenEstimate'
 import type { FriendAtlasContext } from './contextBuilder'
+
+function makeContextWithPadding(padLen: number): FriendAtlasContext {
+  return {
+    friend: { id: 'f1', name: 'x', important: false },
+    likes: [], dislikes: [], hobbies: [],
+    memories: [{ id: 'm1', date: '2026-01-01', title: 'x', content: 'a'.repeat(padLen), tags: [] }],
+    relationships: [],
+    stats: { memoryCount: 1, relationshipCount: 0, profileCompletion: 0, growthStage: 'x', energyLevel: 'x', confidence: 'low' },
+  }
+}
 
 const MOCK_CONTEXT: FriendAtlasContext = {
   friend: { id: 'f1', name: '小雨', important: false },
@@ -20,6 +30,15 @@ describe('estimateTextTokens', () => {
   it('handles mixed Chinese and English text', () => {
     const text = '你好hi'
     expect(estimateTextTokens(text)).toBe(Math.ceil(2 / 1.5 + 2 / 4))
+  })
+  it('counts full-width Chinese punctuation at the 1.5 chars/token Chinese rate, not the 4 chars/token English rate', () => {
+    // All 10 chars here are Han ideographs or full-width punctuation, so the
+    // whole string should be estimated at the Chinese rate. If punctuation
+    // fell through to the "other" bucket, this would estimate too few tokens
+    // (an under-count is unsafe for a cost-gating feature).
+    const text = '今天一起喝了咖啡，聊了很多。'
+    expect(text.length).toBe(14)
+    expect(estimateTextTokens(text)).toBe(Math.ceil(14 / 1.5))
   })
 })
 
@@ -62,5 +81,73 @@ describe('estimateAtlasQuestionCost', () => {
       context: MOCK_CONTEXT, recentMessages: [], question: '下次可以聊什么？', mode: 'standard',
     })
     expect(result.estimatedOutputTokens).toBe(OUTPUT_LIMITS.question.standard)
+  })
+})
+
+describe('levelFor thresholds (via estimateAtlasGenerationCost cost boundaries)', () => {
+  // These use 'premium' mode (gpt-5.5: $5/$15 per 1M input/output tokens) with a
+  // pure-ASCII memory `content` of controlled length, since ASCII gives a simple,
+  // predictable chars->tokens ratio (4 chars/token) for calibrating exact cost values.
+  // Each pad length below was chosen empirically to land the resulting estimatedCostUsd
+  // just inside one side of a 0.1 / 0.5 / 1 boundary (margin ~0.02), which is tight
+  // enough to catch a realistic threshold-shift mutation (e.g. 0.5 -> 0.4 or 0.6) without
+  // being so exact-boundary-fragile that unrelated formula tweaks would break it.
+  // Note: this does NOT distinguish `<` from `<=` at the exact boundary value — that
+  // would require hitting the literal float, which is impractical given the
+  // char-counting/buffer/ceil math; treat that as a known, accepted gap.
+  it('reports low just below the 0.1 threshold', () => {
+    const result = estimateAtlasGenerationCost(makeContextWithPadding(31333), 'premium')
+    expect(result.estimatedCostUsd).toBeLessThan(0.1)
+    expect(result.level).toBe('low')
+  })
+  it('reports medium just above the 0.1 threshold', () => {
+    const result = estimateAtlasGenerationCost(makeContextWithPadding(58000), 'premium')
+    expect(result.estimatedCostUsd).toBeGreaterThan(0.1)
+    expect(result.level).toBe('medium')
+  })
+  it('reports medium just below the 0.5 threshold', () => {
+    const result = estimateAtlasGenerationCost(makeContextWithPadding(298000), 'premium')
+    expect(result.estimatedCostUsd).toBeLessThan(0.5)
+    expect(result.level).toBe('medium')
+  })
+  it('reports high just above the 0.5 threshold', () => {
+    const result = estimateAtlasGenerationCost(makeContextWithPadding(324667), 'premium')
+    expect(result.estimatedCostUsd).toBeGreaterThan(0.5)
+    expect(result.level).toBe('high')
+  })
+  it('reports high just below the 1 threshold', () => {
+    const result = estimateAtlasGenerationCost(makeContextWithPadding(624667), 'premium')
+    expect(result.estimatedCostUsd).toBeLessThan(1)
+    expect(result.level).toBe('high')
+  })
+  it('reports very-high just above the 1 threshold', () => {
+    const result = estimateAtlasGenerationCost(makeContextWithPadding(664667), 'premium')
+    expect(result.estimatedCostUsd).toBeGreaterThan(1)
+    expect(result.level).toBe('very-high')
+  })
+})
+
+describe('pricing fallback', () => {
+  it('throws instead of silently estimating $0.00 when a mode maps to a model with no pricing entry', async () => {
+    // Simulates the real-world failure mode: a new mode/model gets added to
+    // MODEL_MAP (Task 12) but PRICING_USD_PER_1M (this file) isn't updated to
+    // match. Silently falling back to {input:0, output:0} would produce a
+    // misleadingly cheap "low" estimate for an unpriced model — the opposite
+    // of fail-safe for a spend-gating feature — so this must throw instead.
+    vi.resetModules()
+    vi.doMock('./provider', async () => {
+      const actual = await vi.importActual<typeof import('./provider')>('./provider')
+      return {
+        ...actual,
+        MODEL_MAP: {
+          ...actual.MODEL_MAP,
+          economy: { provider: 'gemini', model: 'some-brand-new-unpriced-model' },
+        },
+      }
+    })
+    const { estimateAtlasGenerationCost: estimateWithMockedProvider } = await import('./tokenEstimate')
+    expect(() => estimateWithMockedProvider(MOCK_CONTEXT, 'economy')).toThrow(/定价信息缺失/)
+    vi.doUnmock('./provider')
+    vi.resetModules()
   })
 })
