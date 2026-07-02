@@ -26,7 +26,20 @@ interface AtlasAIOutput {
 }
 
 export async function POST(req: NextRequest) {
-  const { context, mode }: GenerateAtlasRequest = await req.json()
+  let context: FriendAtlasContext
+  let mode: AIQualityMode
+  try {
+    const body: GenerateAtlasRequest = await req.json()
+    context = body.context
+    mode = body.mode
+  } catch {
+    return NextResponse.json({ ok: false, error: '请求格式不正确。' }, { status: 400 })
+  }
+
+  if (!context || !mode || !(mode in MODEL_MAP)) {
+    return NextResponse.json({ ok: false, error: '请求参数不完整。' }, { status: 400 })
+  }
+
   const { provider, model } = MODEL_MAP[mode]
 
   let text: string
