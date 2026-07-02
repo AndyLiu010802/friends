@@ -43,4 +43,12 @@ describe('calculateAtlasConfidence', () => {
     }))
     expect(calculateAtlasConfidence(makeFriend({ memories })).level).toBe('medium')
   })
+
+  it('returns medium (not high) for 8+ memories with only one profile field set', () => {
+    const memories = Array.from({ length: 8 }, (_, i) => ({
+      id: `m${i}`, date: '2026-01-01', title: 't', content: 'c', tags: [], media: [],
+    }))
+    const friend = makeFriend({ memories, notes: '很聊得来' }) // only notes set, no likes/hobbies
+    expect(calculateAtlasConfidence(friend).level).toBe('medium')
+  })
 })
