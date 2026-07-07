@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
 import BackupPanel from '@/components/BackupPanel'
+import AccountPanel from '@/components/AccountPanel'
 
 export default function SettingsPage() {
   return (
@@ -15,6 +16,14 @@ export default function SettingsPage() {
         }}>← 返回星图</Link>
 
         <h1 style={{ color: '#e2b96f', fontFamily: 'Ma Shan Zheng, cursive', fontSize: 28, letterSpacing: 4, marginBottom: 32 }}>设置</h1>
+
+        <section style={{
+          background: 'rgba(226,185,111,0.04)', border: '1px solid rgba(226,185,111,0.15)',
+          borderRadius: 14, padding: '20px 24px', marginBottom: 24,
+        }}>
+          <div style={{ color: 'rgba(226,185,111,0.6)', fontSize: 10, letterSpacing: 3, marginBottom: 16 }}>✦ 账号</div>
+          <AccountPanel />
+        </section>
 
         <section style={{
           background: 'rgba(226,185,111,0.04)', border: '1px solid rgba(226,185,111,0.15)',

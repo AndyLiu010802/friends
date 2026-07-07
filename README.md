@@ -29,8 +29,8 @@ To enable it:
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. Copy `supabase-schema.sql` into the Supabase SQL editor and run it — this creates the
-   `friends`/`atlas` tables, the `friend-media` storage bucket, and permissive
-   single-user RLS policies.
+   `friends`/`atlas` tables, the private `friend-media` storage bucket, and
+   authenticated-only RLS policies.
 3. Create `.env.local` (gitignored, never commit this) with your project's URL and
    publishable/anon key from Project Settings → API:
 
@@ -39,8 +39,15 @@ To enable it:
    NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
    ```
 
-Note: the shipped RLS policy is "allow all" (no auth) — fine for a personal single-user
-tool, but treat the anon key as sensitive: anyone with it can read/write/delete your data.
+4. Enable auth: in the Supabase dashboard go to Authentication → Sign In / Up and
+   turn **off** "Allow new users to sign up", then under Authentication → Users use
+   **Add user** to create your single personal account (email + password).
+5. Re-run `supabase-schema.sql` any time you pull schema changes — it is idempotent
+   and will tighten existing databases (private media bucket, authenticated-only RLS).
+
+With Supabase configured, the app requires signing in at `/login`; without it, the
+app stays in local-only mode with no login. Media files live in a private bucket and
+are served through short-lived signed URLs.
 
 ## Tests
 
