@@ -131,7 +131,7 @@ export default function AtlasPage() {
 
         {!atlas && (
           <div style={{ textAlign:'center' }}>
-            <button onClick={() => generate()} disabled={loading} style={{
+            <button onClick={generate} disabled={loading} style={{
               padding:'14px 40px', background:'rgba(226,185,111,0.1)',
               border:'1px solid rgba(226,185,111,0.4)', borderRadius:14,
               color:'#e2b96f', fontSize:13, letterSpacing:2, cursor:'pointer',
@@ -196,7 +196,7 @@ export default function AtlasPage() {
             <AtlasChatBox friend={friend} allFriends={allFriends} atlas={atlas} />
 
             <div style={{ textAlign:'center', marginTop:8 }}>
-              <button onClick={() => generate()} disabled={loading} style={{
+              <button onClick={generate} disabled={loading} style={{
                 padding:'8px 24px', background:'none',
                 border:'1px solid rgba(226,185,111,0.2)', borderRadius:10,
                 color:'rgba(226,185,111,0.5)', fontSize:10, letterSpacing:1, cursor:'pointer',
