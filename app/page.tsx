@@ -10,8 +10,14 @@ import type { Friend } from '@/lib/types'
 
 const StarMap = dynamic(() => import('@/components/StarMap/StarMap'), { ssr: false })
 
+// Module-level (not component state): survives client-side navigation away from and
+// back to "/" within the same page load, so the entry splash doesn't replay every time
+// the user returns from editing a friend or viewing an atlas. Resets naturally on a real
+// page reload since that re-executes this module from scratch.
+let hasEnteredThisPageLoad = false
+
 export default function HomePage() {
-  const [entered, setEntered] = useState(false)
+  const [entered, setEntered] = useState(hasEnteredThisPageLoad)
   const [friends, setFriends] = useState<Friend[]>([])
   const [selectedFriendId, setSelectedFriendId] = useState<string | null>(null)
 
@@ -43,7 +49,7 @@ export default function HomePage() {
         </nav>
       )}
 
-      {!entered && <OrreryEntry onEnter={() => setEntered(true)} />}
+      {!entered && <OrreryEntry onEnter={() => { hasEnteredThisPageLoad = true; setEntered(true) }} />}
       {entered && (
         <>
           <StarMap selectedFriendId={selectedFriendId} onDeselect={() => setSelectedFriendId(null)} />
