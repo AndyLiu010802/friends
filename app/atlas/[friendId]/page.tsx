@@ -9,6 +9,7 @@ import { calculateAtlasConfidence } from '@/lib/atlasConfidence'
 import type { AIQualityMode } from '@/lib/ai/provider'
 import type { Atlas, Friend } from '@/lib/types'
 import Link from 'next/link'
+import AtlasChatBox from '@/components/AtlasChatBox'
 
 const MODE_LABEL: Record<AIQualityMode, string> = { economy: '省钱模式', standard: '标准模式', premium: '最高级模式' }
 const CONFIDENCE_LABEL: Record<'low' | 'medium' | 'high', string> = { low: '低', medium: '中', high: '高' }
@@ -220,6 +221,8 @@ export default function AtlasPage() {
                 ))}
               </div>
             </section>
+
+            <AtlasChatBox friend={friend} allFriends={allFriends} atlas={atlas} mode={mode} />
 
             <div style={{ textAlign:'center', marginTop:8 }}>
               <button onClick={() => generate()} disabled={loading} style={{
