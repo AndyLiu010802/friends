@@ -17,7 +17,7 @@ const MOCK_FRIEND: Friend = {
 }
 
 const MOCK_ATLAS: Atlas = {
-  id: 'a1', friendId: 'f1', generatedAt: '2026-01-01', model: 'gemini-2.5-flash-lite',
+  id: 'a1', friendId: 'f1', generatedAt: '2026-01-01', model: 'gpt-5.5',
   recordStats: { memoryCount:0, relationshipCount:0, likesCount:0, dislikesCount:0, hobbiesCount:0, noteLength:0, confidence:'low' },
   summary: 's', roleInMyLife: 'r', keyDetailsToRemember: [], recentInteractionInsight: 'i',
   conversationTopics: [], giftIdeas: [], warnings: [], suitableActivities: [],

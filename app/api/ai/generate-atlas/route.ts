@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type { FriendAtlasContext } from '@/lib/ai/contextBuilder'
-import type { AIQualityMode } from '@/lib/ai/provider'
-import { MODEL_MAP, generateWithAI } from '@/lib/ai/provider'
+import { MODEL, generateWithAI } from '@/lib/ai/provider'
 import { buildAtlasPrompt } from '@/lib/ai/prompts'
 import { safeParseAIJson } from '@/lib/ai/json'
 import { OUTPUT_LIMITS } from '@/lib/ai/tokenEstimate'
@@ -9,7 +8,6 @@ import type { Atlas } from '@/lib/types'
 
 interface GenerateAtlasRequest {
   context: FriendAtlasContext
-  mode: AIQualityMode
 }
 
 interface AtlasAIOutput {
@@ -27,26 +25,22 @@ interface AtlasAIOutput {
 
 export async function POST(req: NextRequest) {
   let context: FriendAtlasContext
-  let mode: AIQualityMode
   try {
     const body: GenerateAtlasRequest = await req.json()
     context = body.context
-    mode = body.mode
   } catch {
     return NextResponse.json({ ok: false, error: '请求格式不正确。' }, { status: 400 })
   }
 
-  if (!context || !mode || !(mode in MODEL_MAP)) {
+  if (!context) {
     return NextResponse.json({ ok: false, error: '请求参数不完整。' }, { status: 400 })
   }
 
-  const { provider, model } = MODEL_MAP[mode]
-
   let text: string
   try {
-    text = await generateWithAI(provider, buildAtlasPrompt(context), {
-      model,
-      maxOutputTokens: OUTPUT_LIMITS.atlas[mode],
+    text = await generateWithAI(buildAtlasPrompt(context), {
+      model: MODEL,
+      maxOutputTokens: OUTPUT_LIMITS.atlas,
     })
   } catch (err) {
     return NextResponse.json(
@@ -64,7 +58,7 @@ export async function POST(req: NextRequest) {
     id: crypto.randomUUID(),
     friendId: context.friend.id,
     generatedAt: new Date().toISOString(),
-    model,
+    model: MODEL,
     recordStats: {
       memoryCount: context.stats.memoryCount,
       relationshipCount: context.stats.relationshipCount,

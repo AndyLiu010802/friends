@@ -4,18 +4,16 @@ import { getAtlasChatByFriendId, saveAtlasChat } from '@/lib/store'
 import { saveAtlasChatRemote } from '@/lib/supabase'
 import { buildFriendAtlasContext } from '@/lib/ai/contextBuilder'
 import { estimateAtlasQuestionCost } from '@/lib/ai/tokenEstimate'
-import type { AIQualityMode } from '@/lib/ai/provider'
 import type { Atlas, AtlasChatMessage, Friend } from '@/lib/types'
 
 const PLACEHOLDER = '比如：我下次见 TA 可以聊什么？'
 
 export default function AtlasChatBox({
-  friend, allFriends, atlas, mode,
+  friend, allFriends, atlas,
 }: {
   friend: Friend
   allFriends: Friend[]
   atlas: Atlas
-  mode: AIQualityMode
 }) {
   const [messages, setMessages] = useState<AtlasChatMessage[]>([])
   const [question, setQuestion] = useState('')
@@ -33,7 +31,7 @@ export default function AtlasChatBox({
 
     const context = buildFriendAtlasContext(friend, allFriends, trimmed)
     const recentMessages = messages.slice(-8)
-    const estimate = estimateAtlasQuestionCost({ context, atlas, recentMessages, question: trimmed, mode })
+    const estimate = estimateAtlasQuestionCost({ context, atlas, recentMessages, question: trimmed })
 
     if (estimate.estimatedCostUsd > 1) {
       if (!confirm('这次图鉴使用的记录较多，预计成本超过 $1。是否继续？')) return
@@ -51,7 +49,7 @@ export default function AtlasChatBox({
     try {
       const res = await fetch('/api/ai/ask-atlas', {
         method: 'POST',
-        body: JSON.stringify({ context, atlas, messages: recentMessages, question: trimmed, mode }),
+        body: JSON.stringify({ context, atlas, messages: recentMessages, question: trimmed }),
         headers: { 'Content-Type': 'application/json' },
       })
       const data = await res.json()

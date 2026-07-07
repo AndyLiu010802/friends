@@ -1,14 +1,8 @@
-import { callGemini } from './gemini'
+// Server-only — OPENAI_API_KEY must never reach the client. Only import this from
+// API routes, never from a client component.
 import { callOpenAI } from './openai'
 
-export type AIProvider = 'gemini' | 'openai'
-export type AIQualityMode = 'economy' | 'standard' | 'premium'
-
-export const MODEL_MAP: Record<AIQualityMode, { provider: AIProvider; model: string }> = {
-  economy:  { provider: 'gemini', model: 'gemini-2.5-flash-lite' },
-  standard: { provider: 'gemini', model: 'gemini-2.5-flash' },
-  premium:  { provider: 'openai', model: 'gpt-5.5' },
-}
+export const MODEL = 'gpt-5.5'
 
 export interface GenerateOptions {
   model: string
@@ -16,12 +10,6 @@ export interface GenerateOptions {
   maxOutputTokens: number
 }
 
-export async function generateWithAI(
-  provider: AIProvider,
-  prompt: string,
-  options: GenerateOptions
-): Promise<string> {
-  if (provider === 'gemini') return callGemini(prompt, options.model, options.maxOutputTokens)
-  if (provider === 'openai') return callOpenAI(prompt, options.model, options.maxOutputTokens)
-  throw new Error(`未知的 AI provider: ${provider}`)
+export async function generateWithAI(prompt: string, options: GenerateOptions): Promise<string> {
+  return callOpenAI(prompt, options.model, options.maxOutputTokens)
 }

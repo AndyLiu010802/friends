@@ -6,12 +6,10 @@ import { pushAtlas, pushFriend } from '@/lib/supabase'
 import { buildFriendAtlasContext } from '@/lib/ai/contextBuilder'
 import { estimateAtlasGenerationCost } from '@/lib/ai/tokenEstimate'
 import { calculateAtlasConfidence } from '@/lib/atlasConfidence'
-import type { AIQualityMode } from '@/lib/ai/provider'
 import type { Atlas, Friend } from '@/lib/types'
 import Link from 'next/link'
 import AtlasChatBox from '@/components/AtlasChatBox'
 
-const MODE_LABEL: Record<AIQualityMode, string> = { economy: '省钱模式', standard: '标准模式', premium: '最高级模式' }
 const CONFIDENCE_LABEL: Record<'low' | 'medium' | 'high', string> = { low: '低', medium: '中', high: '高' }
 
 export default function AtlasPage() {
@@ -19,10 +17,8 @@ export default function AtlasPage() {
   const [friend, setFriend] = useState<Friend | null | undefined>(undefined)
   const [allFriends, setAllFriends] = useState<Friend[]>([])
   const [atlas, setAtlas] = useState<Atlas | null>(null)
-  const [mode, setMode] = useState<AIQualityMode>('economy')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [premiumFailed, setPremiumFailed] = useState(false)
 
   useEffect(() => {
     const friends = getFriends()
@@ -33,32 +29,29 @@ export default function AtlasPage() {
     setAtlas(getAtlasByFriendId(friendId) ?? null)
   }, [friendId])
 
-  async function generate(overrideMode?: AIQualityMode) {
+  async function generate() {
     if (!friend) return
-    const useMode = overrideMode ?? mode
     const context = buildFriendAtlasContext(friend, allFriends)
-    const estimate = estimateAtlasGenerationCost(context, useMode)
+    const estimate = estimateAtlasGenerationCost(context)
 
     if (estimate.estimatedCostUsd > 5) {
-      if (!confirm('这次请求成本较高。建议先使用标准模式生成，或者减少传入 memories 数量。是否仍然继续？')) return
+      if (!confirm('这次请求成本较高。建议减少传入 memories 数量。是否仍然继续？')) return
     } else if (estimate.estimatedCostUsd > 1) {
       if (!confirm('这次图鉴使用的记录较多，预计成本超过 $1。是否继续？')) return
     }
 
     setLoading(true)
     setError(null)
-    setPremiumFailed(false)
     try {
       const res = await fetch('/api/ai/generate-atlas', {
         method: 'POST',
-        body: JSON.stringify({ context, mode: useMode }),
+        body: JSON.stringify({ context }),
         headers: { 'Content-Type': 'application/json' },
       })
       const data = await res.json()
 
       if (!res.ok || !data.ok) {
-        if (useMode === 'premium') setPremiumFailed(true)
-        else setError(data.error ?? 'AI 暂时没有回应，请稍后再试。')
+        setError(data.error ?? 'AI 暂时没有回应，请稍后再试。')
         return
       }
 
@@ -78,8 +71,7 @@ export default function AtlasPage() {
       saveFriend(updated)
       pushFriend(updated).catch(console.error)
     } catch {
-      if (useMode === 'premium') setPremiumFailed(true)
-      else setError('AI 暂时没有回应，请稍后再试。')
+      setError('AI 暂时没有回应，请稍后再试。')
     } finally {
       setLoading(false)
     }
@@ -108,7 +100,7 @@ export default function AtlasPage() {
   }
 
   const confidence = calculateAtlasConfidence(friend)
-  const estimatePreview = estimateAtlasGenerationCost(buildFriendAtlasContext(friend, allFriends), mode)
+  const estimatePreview = estimateAtlasGenerationCost(buildFriendAtlasContext(friend, allFriends))
 
   return (
     <main style={{ height:'100vh', padding:'60px 24px 80px', overflowY:'auto',
@@ -127,20 +119,8 @@ export default function AtlasPage() {
           )}
         </div>
 
-        <div style={{ display:'flex', justifyContent:'center', gap:8, marginBottom:16 }}>
-          {(Object.keys(MODE_LABEL) as AIQualityMode[]).map(m => (
-            <button key={m} onClick={() => setMode(m)} style={{
-              padding:'6px 16px', borderRadius:20, fontSize:11, letterSpacing:1, cursor:'pointer',
-              background: mode === m ? 'rgba(226,185,111,0.2)' : 'transparent',
-              border: `1px solid rgba(226,185,111,${mode === m ? 0.6 : 0.25})`,
-              color: mode === m ? '#e2b96f' : 'rgba(226,185,111,0.6)',
-            }}>{MODE_LABEL[m]}</button>
-          ))}
-        </div>
-
         <div style={{ textAlign:'center', color:'rgba(226,185,111,0.5)', fontSize:11, marginBottom:8 }}>
-          预计本次会消耗约 {estimatePreview.estimatedInputTokens.toLocaleString()} input tokens + {estimatePreview.estimatedOutputTokens.toLocaleString()} output tokens。
-          {MODE_LABEL[mode]}预计成本约 ${estimatePreview.estimatedCostUsd.toFixed(2)}。
+          预计本次会消耗约 {estimatePreview.estimatedInputTokens.toLocaleString()} input tokens + {estimatePreview.estimatedOutputTokens.toLocaleString()} output tokens，预计成本约 ${estimatePreview.estimatedCostUsd.toFixed(2)}。
         </div>
 
         <div style={{ textAlign:'center', color:'rgba(226,185,111,0.4)', fontSize:11, marginBottom:24 }}>
@@ -148,15 +128,6 @@ export default function AtlasPage() {
         </div>
 
         {error && <div style={{ textAlign:'center', color:'#f87171', fontSize:12, marginBottom:16 }}>{error}</div>}
-
-        {premiumFailed && (
-          <div style={{ textAlign:'center', marginBottom:16 }}>
-            <div style={{ color:'#f87171', fontSize:12, marginBottom:8 }}>最高级模型暂时不可用，是否使用标准模式重试？</div>
-            <button onClick={() => generate('standard')} disabled={loading} style={{
-              padding:'8px 24px', background:'rgba(226,185,111,0.1)', border:'1px solid rgba(226,185,111,0.4)',
-              borderRadius:10, color:'#e2b96f', fontSize:12, cursor:'pointer' }}>{loading ? '重试中...' : '用标准模式重试'}</button>
-          </div>
-        )}
 
         {!atlas && (
           <div style={{ textAlign:'center' }}>
@@ -222,7 +193,7 @@ export default function AtlasPage() {
               </div>
             </section>
 
-            <AtlasChatBox friend={friend} allFriends={allFriends} atlas={atlas} mode={mode} />
+            <AtlasChatBox friend={friend} allFriends={allFriends} atlas={atlas} />
 
             <div style={{ textAlign:'center', marginTop:8 }}>
               <button onClick={() => generate()} disabled={loading} style={{
