@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import type { Memory, Media } from '@/lib/types'
 import MediaUpload from './MediaUpload'
+import MediaItem from './MediaItem'
 
 interface Props { friendId: string; memories: Memory[]; onChange: (m: Memory[]) => void }
 
@@ -121,9 +122,7 @@ export default function MemoryTimeline({ friendId, memories, onChange }: Props) 
               <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginTop:8 }}>
                 {m.media.map(md => (
                   <div key={md.id} style={{ width:60, height:60, borderRadius:6, overflow:'hidden', background:'rgba(255,255,255,0.05)' }}>
-                    {md.type==='photo'
-                      ? <img src={md.thumbnailUrl} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt={md.caption}/>
-                      : <video src={md.url} style={{ width:'100%', height:'100%', objectFit:'cover' }} muted/>}
+                    <MediaItem media={md} />
                   </div>
                 ))}
                 <MediaUpload friendId={friendId} folder={`memories/${m.id}`} onUploaded={md=>addMedia(m.id,md)}/>
