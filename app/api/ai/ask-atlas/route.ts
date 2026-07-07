@@ -5,6 +5,7 @@ import { buildAtlasQuestionPrompt } from '@/lib/ai/prompts'
 import { safeParseAIJson } from '@/lib/ai/json'
 import { OUTPUT_LIMITS } from '@/lib/ai/tokenEstimate'
 import type { Atlas, AtlasChatMessage, AtlasEvidence } from '@/lib/types'
+import { isAuthorized } from '@/lib/auth/verifyRequest'
 
 interface AskAtlasRequest {
   context: FriendAtlasContext
@@ -20,6 +21,10 @@ interface AskAtlasAIOutput {
 }
 
 export async function POST(req: NextRequest) {
+  if (!(await isAuthorized(req))) {
+    return NextResponse.json({ ok: false, error: '未登录，请先登录。' }, { status: 401 })
+  }
+
   let context: FriendAtlasContext
   let atlas: Atlas | undefined
   let messages: AtlasChatMessage[]
