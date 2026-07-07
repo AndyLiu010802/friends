@@ -68,16 +68,20 @@ export default function AtlasChatBox({
       const finalMessages = [...nextMessages, assistantMessage]
       setMessages(finalMessages)
 
-      const existing = getAtlasChatByFriendId(friend.id)
-      const chat = {
-        id: existing?.id ?? crypto.randomUUID(),
-        friendId: friend.id,
-        messages: finalMessages,
-        createdAt: existing?.createdAt ?? new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+      try {
+        const existing = getAtlasChatByFriendId(friend.id)
+        const chat = {
+          id: existing?.id ?? crypto.randomUUID(),
+          friendId: friend.id,
+          messages: finalMessages,
+          createdAt: existing?.createdAt ?? new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }
+        saveAtlasChat(chat)
+        saveAtlasChatRemote(chat).catch(console.error)
+      } catch {
+        setError('回答已生成但本地保存失败，请检查浏览器存储空间。')
       }
-      saveAtlasChat(chat)
-      saveAtlasChatRemote(chat).catch(console.error)
     } catch {
       setError('AI 暂时没有回应，请稍后再试。')
     } finally {
