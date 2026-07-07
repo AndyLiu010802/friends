@@ -1,6 +1,8 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { createBrowserClient } from '@supabase/ssr'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Friend, Atlas, AtlasChat, CloudBackupPayload, CloudBackupSummary } from './types'
 import { saveFriend, saveAtlas } from './store'
+import { createSignedUrlResolver } from './signedUrlCache'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -8,8 +10,10 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 // Cloud sync is optional — the app is fully usable on localStorage alone. Without
 // NEXT_PUBLIC_SUPABASE_URL/ANON_KEY (e.g. a fresh clone with no .env.local yet), skip
 // client creation instead of throwing, so `npm run build`/`npm run dev` still work.
+// createBrowserClient 把会话写入 cookie（而非 localStorage），
+// 使 proxy.ts 门禁和 API 路由能在服务端读到登录态。
 const supabase: SupabaseClient | null =
-  supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null
+  supabaseUrl && supabaseAnonKey ? createBrowserClient(supabaseUrl, supabaseAnonKey) : null
 
 export async function pushFriend(friend: Friend): Promise<void> {
   if (!supabase) return
@@ -53,9 +57,16 @@ export async function uploadMedia(
   const path = `friends/${friendId}/${folder}/${Date.now()}-${file.name}`
   const { error } = await supabase.storage.from('friend-media').upload(path, file)
   if (error) throw error
-  const { data } = supabase.storage.from('friend-media').getPublicUrl(path)
-  return { url: data.publicUrl, thumbnailUrl: data.publicUrl }
+  // 桶已私有：存 storage 路径，渲染时用 getMediaDisplayUrl 换签名 URL。
+  return { url: path, thumbnailUrl: path }
 }
+
+// 把 Media.url / thumbnailUrl（storage 路径或旧公开 URL）解析为可渲染地址。
+export const getMediaDisplayUrl = createSignedUrlResolver(async path => {
+  if (!supabase) return null
+  const { data } = await supabase.storage.from('friend-media').createSignedUrl(path, 3600)
+  return data?.signedUrl ?? null
+})
 
 export async function backupToCloud(payload: CloudBackupPayload): Promise<void> {
   if (!supabase) return
