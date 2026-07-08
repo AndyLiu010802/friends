@@ -69,4 +69,33 @@ describe('selectMemoriesForAtlas', () => {
     const ids = result.map(m => m.id)
     expect(ids).not.toContain('m5')
   })
+
+  // 下面两个测试的构造要点：目标记忆必须不被任何现有桶救起——
+  // 不在最近 15 条（20 条 5 月 recent 占位）、不在最早 3 条（5 条 1 月 early 占位）、
+  // 内容比 recent 短（长内容名额被占）、无标签（tag 名额被 early 的双标签占）。
+  it('includes a negative-valence memory that no existing bucket would select', () => {
+    const recent = Array.from({ length: 20 }, (_, i) =>
+      makeMemory({ id: `recent${i}`, date: `2026-05-${String(i + 1).padStart(2, '0')}`,
+        content: '这是一条比较长的普通聚餐流水账，用来占住长内容名额的填充记录' })
+    )
+    const early = Array.from({ length: 5 }, (_, i) =>
+      makeMemory({ id: `early${i}`, date: `2026-01-${String(i + 1).padStart(2, '0')}`, tags: ['a', 'b'] })
+    )
+    const conflict = makeMemory({ id: 'conflict', date: '2026-03-01', valence: 'negative' })
+    const result = selectMemoriesForAtlas(makeFriend([...recent, ...early, conflict]))
+    expect(result.some(m => m.id === 'conflict')).toBe(true)
+  })
+
+  it('includes a memory matching a conflict-repair keyword (道歉) that no other bucket would select', () => {
+    const recent = Array.from({ length: 20 }, (_, i) =>
+      makeMemory({ id: `recent${i}`, date: `2026-05-${String(i + 1).padStart(2, '0')}`,
+        content: '这是一条比较长的普通聚餐流水账，用来占住长内容名额的填充记录' })
+    )
+    const early = Array.from({ length: 5 }, (_, i) =>
+      makeMemory({ id: `early${i}`, date: `2026-01-${String(i + 1).padStart(2, '0')}`, tags: ['a', 'b'] })
+    )
+    const apology = makeMemory({ id: 'apology', date: '2026-03-01', content: '后来他主动道歉了' })
+    const result = selectMemoriesForAtlas(makeFriend([...recent, ...early, apology]))
+    expect(result.some(m => m.id === 'apology')).toBe(true)
+  })
 })
