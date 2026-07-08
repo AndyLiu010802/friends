@@ -39,6 +39,15 @@ Data lives in `localStorage` (`yj_friends` / `yj_atlas` / `yj_atlas_chats`), so:
 - Atlas generation buttons may show a `confirm()` cost dialog — register
   `page.on('dialog', d => d.accept())` up front.
 - Port 3000 may be taken by a dev server from another session; use 3100+.
+- `.env.local` bakes `NEXT_PUBLIC_SUPABASE_*` into the build — for local mode you must
+  move it aside AND rebuild, then restore + rebuild after.
+- globals.css `@import` of Google Fonts blocks first paint in headless; splash-screen
+  frames are unphotographable until you `ctx.route('**fonts.googleapis.com**', r => r.abort())`.
+- Stopping the background `next start` task can leave the node child holding the port;
+  check `Get-NetTCPConnection -LocalPort <p> -State Listen` and kill the PID.
+- The home star map hides hover cards only while a card is pinned — after
+  Escape/deselect, a mouse resting on a star re-shows the hover card; move the mouse
+  away before asserting "card gone".
 
 ## Flows worth driving
 

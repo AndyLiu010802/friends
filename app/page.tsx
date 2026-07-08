@@ -26,6 +26,8 @@ export default function HomePage() {
   const [friends, setFriends] = useState<Friend[]>([])
   const [dataReady, setDataReady] = useState(false)
   const [selectedFriendId, setSelectedFriendId] = useState<string | null>(null)
+  // 聚焦模式：卡片停靠右侧期间隐藏洞察面板，避免右侧重叠；关闭卡片即恢复
+  const [focusedFriendId, setFocusedFriendId] = useState<string | null>(null)
 
   // 挂载即拉数——入场页兼职加载屏，不把加载成本转嫁给点击之后
   useEffect(() => {
@@ -58,8 +60,17 @@ export default function HomePage() {
       {!entered && <OrreryEntry ready={dataReady} onEnter={() => { hasEnteredThisPageLoad = true; setEntered(true) }} />}
       {entered && (
         <>
-          <StarMap friends={friends} cinematic={cinematic} selectedFriendId={selectedFriendId} onDeselect={() => setSelectedFriendId(null)} />
-          <InsightPanel friends={friends} onSelectFriend={setSelectedFriendId} />
+          <StarMap
+            friends={friends}
+            cinematic={cinematic}
+            selectedFriendId={selectedFriendId}
+            onSelect={setFocusedFriendId}
+            onDeselect={() => { setSelectedFriendId(null); setFocusedFriendId(null) }}
+          />
+          {!focusedFriendId && (
+            <InsightPanel friends={friends}
+              onSelectFriend={id => { setSelectedFriendId(id); setFocusedFriendId(id) }} />
+          )}
           {dataReady && friends.length === 0 && <EmptyUniverse />}
           {dataReady && friends.length > 0 && <FirstRunHint />}
         </>

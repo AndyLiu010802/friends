@@ -26,14 +26,3 @@ export function flyToStar(
   })
   return () => tween.kill()
 }
-
-/** 对象世界坐标 → 屏幕像素坐标 */
-export function worldToScreen(
-  obj: THREE.Object3D, camera: THREE.Camera, vw: number, vh: number,
-): { x: number; y: number } {
-  const v = new THREE.Vector3()
-  obj.getWorldPosition(v)
-  camera.updateMatrixWorld() // 飞行刚结束时相机矩阵可能落后一帧
-  v.project(camera)
-  return { x: (v.x + 1) / 2 * vw, y: (1 - v.y) / 2 * vh }
-}

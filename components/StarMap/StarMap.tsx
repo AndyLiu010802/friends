@@ -6,7 +6,7 @@ import { buildStarfield } from './starfield'
 import { initTrail } from './mouseTrail'
 import { buildStar, type StarObject } from './StarBuilder'
 import { buildConstellationLines, highlightLines, type LineObject } from './constellationLines'
-import { flyToStar, worldToScreen } from './cameraFly'
+import { flyToStar } from './cameraFly'
 import FriendCard from '@/components/FriendCard'
 import { isTap, applyZoom, createPinchTracker } from '@/lib/gestures'
 import { clampToViewport } from '@/lib/ui/viewport'
@@ -18,6 +18,8 @@ interface Props {
   friends: Friend[]
   cinematic?: boolean
   selectedFriendId?: string | null
+  /** 桌面端点选星星时通知父级（用于聚焦模式下隐藏洞察面板） */
+  onSelect?: (friendId: string) => void
   onDeselect?: () => void
 }
 
@@ -25,8 +27,18 @@ interface Props {
 const PINCH_ZOOM_FACTOR = 0.02
 // 浮层卡片的估算尺寸，用于视口夹取
 const CARD_W = 260, CARD_H = 300
+// 飞行到位后卡片停靠在屏幕右侧（星星居中、信息在右的聚焦布局）
+const RIGHT_DOCK_MARGIN = 24
 
-export default function StarMap({ friends, cinematic = false, selectedFriendId = null, onDeselect }: Props) {
+function rightDockPos() {
+  return clampToViewport(
+    window.innerWidth - CARD_W - RIGHT_DOCK_MARGIN,
+    (window.innerHeight - CARD_H) / 2,
+    CARD_W, CARD_H, window.innerWidth, window.innerHeight,
+  )
+}
+
+export default function StarMap({ friends, cinematic = false, selectedFriendId = null, onSelect, onDeselect }: Props) {
   const threeRef = useRef<HTMLCanvasElement>(null)
   const trailRef = useRef<HTMLCanvasElement>(null)
   const [hoveredFriend, setHoveredFriend] = useState<Friend | null>(null)
@@ -44,6 +56,27 @@ export default function StarMap({ friends, cinematic = false, selectedFriendId =
   // 首次经入场页进入时播一次 stagger/推镜；编辑页返回等二次挂载不重播慢动画
   const cinematicPendingRef = useRef(cinematic)
   const cancelFlyRef = useRef<(() => void) | null>(null)
+  const isMobileRef = useRef(isMobile)
+  useEffect(() => { isMobileRef.current = isMobile }, [isMobile])
+
+  // 只读 refs 与稳定 setter，挂载 effect 里的闭包引用它也不会过期
+  function flyAndDock(friend: Friend) {
+    const sceneCtx = sceneRef.current
+    if (!sceneCtx) return
+    const { camera, pivot } = sceneCtx
+    cancelFlyRef.current?.()
+    // 飞行期间先收起旧卡片，到位后在右侧停靠位弹出新卡片
+    setPinnedFriend(null)
+    setPinnedPos(null)
+    pinnedFriendIdRef.current = friend.id
+    highlightLines(linesRef.current, friend.id)
+    cancelFlyRef.current = flyToStar(pivot, camera,
+      new THREE.Vector3(...friend.starConfig.position), () => {
+        cancelFlyRef.current = null
+        setPinnedFriend(friend)
+        setPinnedPos(rightDockPos())
+      })
+  }
 
   useEffect(() => {
     const coarsePointer = window.matchMedia('(pointer: coarse)').matches
@@ -148,11 +181,17 @@ export default function StarMap({ friends, cinematic = false, selectedFriendId =
       setNdc(e.clientX, e.clientY) // 触屏没有 move 预热，用抬起坐标现算
       const friend = pickFriend()
       if (friend) {
-        pinnedFriendIdRef.current = friend.id
-        setPinnedFriend(friend)
-        setPinnedPos(clampToViewport(e.clientX + 22, e.clientY - 12, CARD_W, CARD_H,
-          window.innerWidth, window.innerHeight))
-        highlightLines(linesRef.current, friend.id)
+        if (isMobileRef.current) {
+          // 移动端保持轻点即出 bottom sheet，不做运镜
+          pinnedFriendIdRef.current = friend.id
+          setPinnedFriend(friend)
+          setPinnedPos(clampToViewport(e.clientX + 22, e.clientY - 12, CARD_W, CARD_H,
+            window.innerWidth, window.innerHeight))
+          highlightLines(linesRef.current, friend.id)
+        } else {
+          onSelect?.(friend.id)
+          flyAndDock(friend)
+        }
       } else {
         pinnedFriendIdRef.current = null
         setPinnedFriend(null)
@@ -241,24 +280,13 @@ export default function StarMap({ friends, cinematic = false, selectedFriendId =
     })
   }, [friends])
 
-  // 从洞察面板选中：相机飞向那颗星，到位后卡片在星星的投影屏幕坐标处出现
+  // 从洞察面板选中：与点星同一套运镜——飞向那颗星，卡片停靠右侧
   useEffect(() => {
-    if (!selectedFriendId || !sceneRef.current) return
+    if (!selectedFriendId) return
     const friend = friendsRef.current.find(f => f.id === selectedFriendId)
-    const star = starsRef.current.find(s => s.friendId === selectedFriendId)
-    if (!friend || !star) return
-    const { camera, pivot } = sceneRef.current
-    cancelFlyRef.current?.()
-    highlightLines(linesRef.current, friend.id)
-    cancelFlyRef.current = flyToStar(pivot, camera,
-      new THREE.Vector3(...friend.starConfig.position), () => {
-        cancelFlyRef.current = null
-        pinnedFriendIdRef.current = friend.id
-        setPinnedFriend(friend)
-        const p = worldToScreen(star.root, camera, window.innerWidth, window.innerHeight)
-        setPinnedPos(clampToViewport(p.x + 22, p.y - 12, CARD_W, CARD_H,
-          window.innerWidth, window.innerHeight))
-      })
+    if (!friend) return
+    flyAndDock(friend)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFriendId])
 
   return (
