@@ -193,6 +193,20 @@ export default function AtlasPage() {
               </div>
             </section>
 
+            {(atlas.missingInfoQuestions?.length ?? 0) > 0 && (
+              <section style={{ background:'rgba(155,142,196,0.05)', border:'1px solid rgba(155,142,196,0.2)',
+                borderRadius:14, padding:'20px 24px' }}>
+                <div style={{ color:'rgba(155,142,196,0.8)', fontSize:10, letterSpacing:3, marginBottom:12 }}>
+                  ✧ 补充这些，图鉴会更准
+                </div>
+                <ul style={{ margin:0, paddingLeft:18, display:'flex', flexDirection:'column', gap:8 }}>
+                  {atlas.missingInfoQuestions!.map(q => (
+                    <li key={q} style={{ color:'#cbd5e1', fontSize:12, lineHeight:1.8 }}>{q}</li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
             <AtlasChatBox friend={friend} allFriends={allFriends} atlas={atlas} />
 
             <div style={{ textAlign:'center', marginTop:8 }}>
