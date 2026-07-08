@@ -36,7 +36,9 @@ body {
   background: var(--bg);
   color: #e2e8f0;
   font-family: 'Noto Serif SC', serif;
-  overflow: hidden; /* full-viewport canvas layout — required by StarMap */
+  /* 星图页的画布是 position:fixed，不产生文档流内容；表单/设置/图鉴页需要正常滚动，
+     因此不再全局 overflow:hidden。overscroll-behavior 防止移动端橡皮筋带崩全屏体验。 */
+  overscroll-behavior: none;
 }
 
 select {
@@ -51,4 +53,12 @@ select option {
 @keyframes youji-sheet-in {
   from { transform: translateY(100%); }
   to   { transform: translateY(0); }
+}
+
+/* iOS Safari 在输入框字号 <16px 时聚焦会强制放大整页；
+   inline style 优先级高于普通规则，必须 !important。 */
+@media (max-width: 640px) {
+  input, textarea, select {
+    font-size: 16px !important;
+  }
 }
