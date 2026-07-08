@@ -35,7 +35,7 @@ export default function HomePage() {
         <nav style={{
           position:'fixed', top:0, left:0, right:0, zIndex:30,
           display:'flex', justifyContent:'space-between', alignItems:'center',
-          padding:'18px 32px',
+          padding:'calc(14px + env(safe-area-inset-top)) 16px 14px',
           background:'linear-gradient(to bottom, rgba(2,4,8,0.8), transparent)',
           pointerEvents:'none',
         }}>
@@ -44,7 +44,7 @@ export default function HomePage() {
           <Link href="/friend/new" style={{
             color:'#e2b96f', fontSize:11, letterSpacing:2,
             border:'1px solid rgba(226,185,111,0.35)', borderRadius:20,
-            padding:'6px 16px', textDecoration:'none', pointerEvents:'auto',
+            padding:'10px 18px', textDecoration:'none', pointerEvents:'auto',
           }}>✦ 新纪录</Link>
         </nav>
       )}
