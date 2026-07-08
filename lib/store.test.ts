@@ -69,6 +69,13 @@ describe('store', () => {
   })
 })
 
+describe('relationshipGoal persistence', () => {
+  it('preserves relationshipGoal through saveFriend/getFriends round-trip', () => {
+    saveFriend({ ...MOCK_FRIEND, id: 'goal-test', relationshipGoal: 'deepen' })
+    expect(getFriends().find(f => f.id === 'goal-test')?.relationshipGoal).toBe('deepen')
+  })
+})
+
 describe('deleteAtlas', () => {
   it('removes the atlas for a friendId', () => {
     saveAtlas(MOCK_ATLAS)
