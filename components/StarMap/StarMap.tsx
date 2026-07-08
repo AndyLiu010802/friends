@@ -50,6 +50,14 @@ export default function StarMap({ friends, cinematic = false, selectedFriendId =
     // Background
     scene.add(buildStarfield(coarsePointer ? 750 : 1500))
 
+    // 首次经入场页进入：相机从远处推进，与星星 stagger 同步；用户一操作缩放/拖拽即接管
+    let dolly: gsap.core.Tween | null = null
+    if (cinematic) {
+      camera.position.z = 26
+      dolly = gsap.to(camera.position, { z: 9, duration: 1.8, ease: 'power3.out' })
+    }
+    const killDolly = () => { dolly?.kill(); dolly = null }
+
     // Raycaster for hover + tap
     const raycaster = new THREE.Raycaster()
     const ndc = new THREE.Vector2(-99, -99)
@@ -73,6 +81,7 @@ export default function StarMap({ friends, cinematic = false, selectedFriendId =
     }
 
     const onPointerDown = (e: PointerEvent) => {
+      killDolly()
       pinch.down(e.pointerId, e.clientX, e.clientY)
       if (pinch.isPinching) {
         // 进入捏合：取消拖拽与轻点
@@ -155,6 +164,7 @@ export default function StarMap({ friends, cinematic = false, selectedFriendId =
     }
 
     const onWheel = (e: WheelEvent) => {
+      killDolly()
       camera.position.z = applyZoom(camera.position.z, e.deltaY * .007)
     }
 
