@@ -6,6 +6,7 @@ import OrreryEntry from '@/components/StarMap/OrreryEntry'
 import InsightPanel from '@/components/InsightPanel'
 import { getFriends } from '@/lib/store'
 import { pullAll } from '@/lib/supabase'
+import { fs, gold, border, radius, font } from '@/lib/ui/tokens'
 import type { Friend } from '@/lib/types'
 
 const StarMap = dynamic(() => import('@/components/StarMap/StarMap'), { ssr: false })
@@ -39,11 +40,11 @@ export default function HomePage() {
           background:'linear-gradient(to bottom, rgba(2,4,8,0.8), transparent)',
           pointerEvents:'none',
         }}>
-          <span style={{ color:'#e2b96f', fontFamily:'Ma Shan Zheng, cursive',
-            fontSize:16, letterSpacing:4 }}>✦ 友记</span>
+          <span style={{ color: gold.base, fontFamily: font.hand,
+            fontSize: fs.title, letterSpacing:4 }}>✦ 友记</span>
           <Link href="/friend/new" style={{
-            color:'#e2b96f', fontSize:11, letterSpacing:2,
-            border:'1px solid rgba(226,185,111,0.35)', borderRadius:20,
+            color: gold.base, fontSize: fs.meta, letterSpacing:2,
+            border:`1px solid ${border.gold}`, borderRadius: radius.pill,
             padding:'10px 18px', textDecoration:'none', pointerEvents:'auto',
           }}>✦ 新纪录</Link>
         </nav>

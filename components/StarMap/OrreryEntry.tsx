@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
+import { fs, gold, purple, font } from '@/lib/ui/tokens'
 
 interface Props { onEnter: () => void }
 
@@ -45,10 +46,10 @@ export default function OrreryEntry({ onEnter }: Props) {
         }}/>
       </div>
 
-      <div style={{ color:'#e2b96f', fontFamily:'Ma Shan Zheng, cursive', fontSize:28, letterSpacing:8 }}>
+      <div style={{ color: gold.base, fontFamily: font.hand, fontSize: fs.display, letterSpacing:8 }}>
         朋友笔记
       </div>
-      <div style={{ color:'rgba(155,142,196,0.6)', fontSize:11, letterSpacing:3, marginTop:10 }}>
+      <div style={{ color: purple.muted, fontSize: fs.meta, letterSpacing:3, marginTop:10 }}>
         点击打开星图
       </div>
 
