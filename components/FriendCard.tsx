@@ -16,9 +16,10 @@ interface Props {
   style?: CSSProperties
   pinned?: boolean
   onClose?: () => void
+  variant?: 'floating' | 'sheet'
 }
 
-export default function FriendCard({ friend, style, pinned, onClose }: Props) {
+export default function FriendCard({ friend, style, pinned, onClose, variant = 'floating' }: Props) {
   const growth = getGrowthStage(friend)
   const energy = calculateFriendEnergy(friend)
   const hint = generateConversationHint(friend)
@@ -35,13 +36,26 @@ export default function FriendCard({ friend, style, pinned, onClose }: Props) {
   const meta = [friend.mbti, friend.zodiac, growth.label].filter(Boolean).join(' · ')
   const energyPercent = Math.round(Math.min(energy.score / 15, 1) * 100)
 
+  const sheet = variant === 'sheet'
   return (
-    <div style={{
-      position:'fixed', zIndex:20, minWidth:220, maxWidth:260,
+    <div data-testid="friend-card" style={{
+      position:'fixed', zIndex:20,
       background:'rgba(4,7,20,0.94)', border:'1px solid rgba(226,185,111,0.3)',
-      borderRadius:12, padding:'16px 20px',
       backdropFilter:'blur(12px)', pointerEvents:'auto',
-      ...style,
+      ...(sheet
+        ? {
+            left:0, right:0, bottom:0,
+            borderRadius:'16px 16px 0 0',
+            maxHeight:'60vh', overflowY:'auto',
+            padding:'20px 24px',
+            paddingBottom:'calc(20px + env(safe-area-inset-bottom))',
+            animation:'youji-sheet-in .25s ease-out',
+          }
+        : {
+            minWidth:220, maxWidth:260,
+            borderRadius:12, padding:'16px 20px',
+            ...style,
+          }),
     }}>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:12 }}>
         <div style={{ color:'#e2b96f', fontSize:16 }}>{friend.name}</div>
@@ -104,13 +118,15 @@ export default function FriendCard({ friend, style, pinned, onClose }: Props) {
 
       <div style={{ marginTop:12, display:'flex', gap:8 }}>
         <Link href={`/friend/${friend.id}`}
-          style={{ color:'#e2b96f', fontSize:10, letterSpacing:1, textDecoration:'none',
-            border:'1px solid rgba(226,185,111,0.3)', borderRadius:10, padding:'4px 10px' }}>
+          style={{ color:'#e2b96f', fontSize: sheet ? 12 : 10, letterSpacing:1, textDecoration:'none',
+            border:'1px solid rgba(226,185,111,0.3)', borderRadius:10,
+            padding: sheet ? '10px 18px' : '4px 10px' }}>
           编辑
         </Link>
         <Link href={`/atlas/${friend.id}`}
-          style={{ color:'rgba(155,142,196,0.8)', fontSize:10, letterSpacing:1, textDecoration:'none',
-            border:'1px solid rgba(155,142,196,0.3)', borderRadius:10, padding:'4px 10px' }}>
+          style={{ color:'rgba(155,142,196,0.8)', fontSize: sheet ? 12 : 10, letterSpacing:1, textDecoration:'none',
+            border:'1px solid rgba(155,142,196,0.3)', borderRadius:10,
+            padding: sheet ? '10px 18px' : '4px 10px' }}>
           {friend.atlasId ? '图鉴' : '生成图鉴'}
         </Link>
       </div>

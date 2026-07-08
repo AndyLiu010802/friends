@@ -47,3 +47,8 @@ select option {
   background-color: #0d1428;
   color: #f1e9d8;
 }
+
+@keyframes youji-sheet-in {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
