@@ -21,6 +21,8 @@ let hasEnteredThisPageLoad = false
 
 export default function HomePage() {
   const [entered, setEntered] = useState(hasEnteredThisPageLoad)
+  // 本次页面加载首次经入场页进入才播 stagger/推镜；从编辑页返回不重播
+  const [cinematic] = useState(!hasEnteredThisPageLoad)
   const [friends, setFriends] = useState<Friend[]>([])
   const [dataReady, setDataReady] = useState(false)
   const [selectedFriendId, setSelectedFriendId] = useState<string | null>(null)
@@ -56,7 +58,7 @@ export default function HomePage() {
       {!entered && <OrreryEntry ready={dataReady} onEnter={() => { hasEnteredThisPageLoad = true; setEntered(true) }} />}
       {entered && (
         <>
-          <StarMap friends={friends} selectedFriendId={selectedFriendId} onDeselect={() => setSelectedFriendId(null)} />
+          <StarMap friends={friends} cinematic={cinematic} selectedFriendId={selectedFriendId} onDeselect={() => setSelectedFriendId(null)} />
           <InsightPanel friends={friends} onSelectFriend={setSelectedFriendId} />
           {dataReady && friends.length === 0 && <EmptyUniverse />}
           {dataReady && friends.length > 0 && <FirstRunHint />}

@@ -63,7 +63,7 @@ const STAGE_SIZE: Record<GrowthStage, number> = {
   dust: 0.55, young: 0.75, bright: 1.0, stellar: 1.15, 'constellation-core': 1.3,
 }
 
-export function buildStar(friend: Friend): StarObject {
+export function buildStar(friend: Friend, appearDelay = 0): StarObject {
   const { starConfig: cfg } = friend
   const root = new THREE.Group()
   root.position.set(...cfg.position)
@@ -167,7 +167,7 @@ export function buildStar(friend: Friend): StarObject {
   }
 
   root.scale.setScalar(0)
-  gsap.to(root.scale,{x:1,y:1,z:1, duration:1.4, ease:'back.out(2)'})
+  gsap.to(root.scale,{x:1,y:1,z:1, duration:1.4, ease:'back.out(2)', delay:appearDelay})
 
   const hitMesh = new THREE.Mesh(
     new THREE.SphereGeometry(size*.55,8,8),

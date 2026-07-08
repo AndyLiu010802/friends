@@ -22,7 +22,7 @@ interface Props {
 // 捏合像素距离 → 相机 z 轴距离的换算系数
 const PINCH_ZOOM_FACTOR = 0.02
 
-export default function StarMap({ friends, selectedFriendId = null, onDeselect }: Props) {
+export default function StarMap({ friends, cinematic = false, selectedFriendId = null, onDeselect }: Props) {
   const threeRef = useRef<HTMLCanvasElement>(null)
   const trailRef = useRef<HTMLCanvasElement>(null)
   const [hoveredFriend, setHoveredFriend] = useState<Friend | null>(null)
@@ -37,6 +37,8 @@ export default function StarMap({ friends, selectedFriendId = null, onDeselect }
   const pinnedFriendIdRef = useRef<string | null>(null)
   const friendsRef = useRef<Friend[]>([])
   const sceneRef = useRef<ReturnType<typeof initScene> | null>(null)
+  // 首次经入场页进入时播一次 stagger/推镜；编辑页返回等二次挂载不重播慢动画
+  const cinematicPendingRef = useRef(cinematic)
 
   useEffect(() => {
     const coarsePointer = window.matchMedia('(pointer: coarse)').matches
@@ -198,13 +200,23 @@ export default function StarMap({ friends, selectedFriendId = null, onDeselect }
       return
     }
 
-    const stars = friends.map(f => buildStar(f))
+    const useStagger = cinematicPendingRef.current
+    cinematicPendingRef.current = false
+
+    const stars = friends.map((f, i) => buildStar(f, useStagger ? Math.min(i * 0.06, 2) : 0))
     starsRef.current = stars
     stars.forEach(s => pivot.add(s.root))
 
     const lines = buildConstellationLines(friends)
     linesRef.current = lines
-    lines.forEach(l => pivot.add(l.line))
+    lines.forEach((l, i) => {
+      pivot.add(l.line)
+      const mat = l.line.material as THREE.LineBasicMaterial
+      const target = mat.opacity
+      mat.opacity = 0
+      gsap.to(mat, { opacity: target, ease: 'power1.out',
+        duration: useStagger ? 1.2 : 0.4, delay: useStagger ? 1 + i * 0.05 : 0 })
+    })
   }, [friends])
 
   useEffect(() => {
