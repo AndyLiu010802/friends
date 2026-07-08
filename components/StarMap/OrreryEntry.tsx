@@ -3,25 +3,45 @@ import { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 import { fs, gold, purple, font } from '@/lib/ui/tokens'
 
-interface Props { onEnter: () => void }
+interface Props {
+  /** 数据是否已就绪；就绪后满足最短展示时长即自动进入 */
+  ready: boolean
+  onEnter: () => void
+}
 
-export default function OrreryEntry({ onEnter }: Props) {
+const MIN_SPLASH_MS = 1600
+const AUTO_ENTER_EXTRA_MS = 400
+
+export default function OrreryEntry({ ready, onEnter }: Props) {
   const ref = useRef<HTMLDivElement>(null)
+  const leavingRef = useRef(false)
+  const mountedAtRef = useRef(Date.now())
 
   useEffect(() => {
     const el = ref.current!
     gsap.fromTo(el, { opacity:0, scale:.8 }, { opacity:1, scale:1, duration:1.5, ease:'power2.out' })
   }, [])
 
-  function handleClick() {
-    const el = ref.current!
-    gsap.to(el, { opacity:0, scale:1.4, duration:.8, ease:'power2.in', onComplete: onEnter })
+  function leave() {
+    if (leavingRef.current) return
+    leavingRef.current = true
+    gsap.to(ref.current!, { opacity:0, scale:1.4, duration:.8, ease:'power2.in', onComplete: onEnter })
   }
+
+  // 兼职加载屏：数据就绪后自动进入；点击可随时跳过（数据未到也放行，星图先用本地数据渲染）
+  useEffect(() => {
+    if (!ready) return
+    const elapsed = Date.now() - mountedAtRef.current
+    const wait = Math.max(0, MIN_SPLASH_MS - elapsed) + AUTO_ENTER_EXTRA_MS
+    const t = setTimeout(leave, wait)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready])
 
   return (
     <div
       ref={ref}
-      onClick={handleClick}
+      onClick={leave}
       style={{ position:'fixed', inset:0, display:'flex', flexDirection:'column',
         alignItems:'center', justifyContent:'center', cursor:'pointer', zIndex:50 }}
     >
@@ -47,10 +67,10 @@ export default function OrreryEntry({ onEnter }: Props) {
       </div>
 
       <div style={{ color: gold.base, fontFamily: font.hand, fontSize: fs.display, letterSpacing:8 }}>
-        朋友笔记
+        友记
       </div>
       <div style={{ color: purple.muted, fontSize: fs.meta, letterSpacing:3, marginTop:10 }}>
-        点击打开星图
+        {ready ? '点击进入' : '正在校准星轨…'}
       </div>
 
       <style>{`

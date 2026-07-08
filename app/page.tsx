@@ -20,14 +20,15 @@ let hasEnteredThisPageLoad = false
 export default function HomePage() {
   const [entered, setEntered] = useState(hasEnteredThisPageLoad)
   const [friends, setFriends] = useState<Friend[]>([])
+  const [dataReady, setDataReady] = useState(false)
   const [selectedFriendId, setSelectedFriendId] = useState<string | null>(null)
 
+  // 挂载即拉数——入场页兼职加载屏，不把加载成本转嫁给点击之后
   useEffect(() => {
-    if (!entered) return
     pullAll()
       .catch(console.error)
-      .finally(() => setFriends(getFriends()))
-  }, [entered])
+      .finally(() => { setFriends(getFriends()); setDataReady(true) })
+  }, [])
 
   return (
     <>
@@ -50,7 +51,7 @@ export default function HomePage() {
         </nav>
       )}
 
-      {!entered && <OrreryEntry onEnter={() => { hasEnteredThisPageLoad = true; setEntered(true) }} />}
+      {!entered && <OrreryEntry ready={dataReady} onEnter={() => { hasEnteredThisPageLoad = true; setEntered(true) }} />}
       {entered && (
         <>
           <StarMap friends={friends} selectedFriendId={selectedFriendId} onDeselect={() => setSelectedFriendId(null)} />
