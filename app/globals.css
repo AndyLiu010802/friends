@@ -56,6 +56,11 @@ select option {
   to   { transform: translateY(0); }
 }
 
+@keyframes youji-breathe {
+  0%, 100% { transform: scale(1);    opacity: .75; }
+  50%      { transform: scale(1.25); opacity: 1;   }
+}
+
 /* iOS Safari 在输入框字号 <16px 时聚焦会强制放大整页；
    inline style 优先级高于普通规则，必须 !important。 */
 @media (max-width: 640px) {

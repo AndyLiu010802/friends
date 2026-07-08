@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import OrreryEntry from '@/components/StarMap/OrreryEntry'
 import InsightPanel from '@/components/InsightPanel'
+import EmptyUniverse from '@/components/EmptyUniverse'
 import { getFriends } from '@/lib/store'
 import { pullAll } from '@/lib/supabase'
 import { fs, gold, border, radius, font } from '@/lib/ui/tokens'
@@ -56,6 +57,7 @@ export default function HomePage() {
         <>
           <StarMap friends={friends} selectedFriendId={selectedFriendId} onDeselect={() => setSelectedFriendId(null)} />
           <InsightPanel friends={friends} onSelectFriend={setSelectedFriendId} />
+          {dataReady && friends.length === 0 && <EmptyUniverse />}
         </>
       )}
     </>
