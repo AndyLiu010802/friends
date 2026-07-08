@@ -6,8 +6,10 @@ import { buildStarfield } from './starfield'
 import { initTrail } from './mouseTrail'
 import { buildStar, type StarObject } from './StarBuilder'
 import { buildConstellationLines, highlightLines, type LineObject } from './constellationLines'
+import { flyToStar, worldToScreen } from './cameraFly'
 import FriendCard from '@/components/FriendCard'
 import { isTap, applyZoom, createPinchTracker } from '@/lib/gestures'
+import { clampToViewport } from '@/lib/ui/viewport'
 import { useIsMobile } from '@/lib/useIsMobile'
 import type { Friend } from '@/lib/types'
 import * as THREE from 'three'
@@ -21,6 +23,8 @@ interface Props {
 
 // 捏合像素距离 → 相机 z 轴距离的换算系数
 const PINCH_ZOOM_FACTOR = 0.02
+// 浮层卡片的估算尺寸，用于视口夹取
+const CARD_W = 260, CARD_H = 300
 
 export default function StarMap({ friends, cinematic = false, selectedFriendId = null, onDeselect }: Props) {
   const threeRef = useRef<HTMLCanvasElement>(null)
@@ -39,6 +43,7 @@ export default function StarMap({ friends, cinematic = false, selectedFriendId =
   const sceneRef = useRef<ReturnType<typeof initScene> | null>(null)
   // 首次经入场页进入时播一次 stagger/推镜；编辑页返回等二次挂载不重播慢动画
   const cinematicPendingRef = useRef(cinematic)
+  const cancelFlyRef = useRef<(() => void) | null>(null)
 
   useEffect(() => {
     const coarsePointer = window.matchMedia('(pointer: coarse)').matches
@@ -82,6 +87,8 @@ export default function StarMap({ friends, cinematic = false, selectedFriendId =
 
     const onPointerDown = (e: PointerEvent) => {
       killDolly()
+      cancelFlyRef.current?.()
+      cancelFlyRef.current = null
       pinch.down(e.pointerId, e.clientX, e.clientY)
       if (pinch.isPinching) {
         // 进入捏合：取消拖拽与轻点
@@ -112,7 +119,8 @@ export default function StarMap({ friends, cinematic = false, selectedFriendId =
       if (friend) {
         const star = starsRef.current.find(s => s.friendId === friend.id)!
         setHoveredFriend(friend)
-        setHoverPos({ x: e.clientX + 22, y: e.clientY - 12 })
+        setHoverPos(clampToViewport(e.clientX + 22, e.clientY - 12, CARD_W, CARD_H,
+          window.innerWidth, window.innerHeight))
         highlightLines(linesRef.current, pinnedFriendIdRef.current ?? friend.id)
         gsap.to(star.root.scale, { x:1.22, y:1.22, z:1.22, duration:.3, ease:'back.out(2)' })
       } else {
@@ -142,7 +150,8 @@ export default function StarMap({ friends, cinematic = false, selectedFriendId =
       if (friend) {
         pinnedFriendIdRef.current = friend.id
         setPinnedFriend(friend)
-        setPinnedPos({ x: e.clientX + 22, y: e.clientY - 12 })
+        setPinnedPos(clampToViewport(e.clientX + 22, e.clientY - 12, CARD_W, CARD_H,
+          window.innerWidth, window.innerHeight))
         highlightLines(linesRef.current, friend.id)
       } else {
         pinnedFriendIdRef.current = null
@@ -183,6 +192,9 @@ export default function StarMap({ friends, cinematic = false, selectedFriendId =
 
     return () => {
       cancelAnimationFrame(raf)
+      killDolly()
+      cancelFlyRef.current?.()
+      cancelFlyRef.current = null
       window.removeEventListener('pointermove', onPointerMove)
       window.removeEventListener('pointerup', onWindowPointerUp)
       window.removeEventListener('pointercancel', onWindowPointerUp)
@@ -229,14 +241,24 @@ export default function StarMap({ friends, cinematic = false, selectedFriendId =
     })
   }, [friends])
 
+  // 从洞察面板选中：相机飞向那颗星，到位后卡片在星星的投影屏幕坐标处出现
   useEffect(() => {
-    if (!selectedFriendId) return
+    if (!selectedFriendId || !sceneRef.current) return
     const friend = friendsRef.current.find(f => f.id === selectedFriendId)
-    if (!friend) return
-    pinnedFriendIdRef.current = friend.id
-    setPinnedFriend(friend)
-    setPinnedPos({ x: window.innerWidth / 2 - 130, y: window.innerHeight / 2 - 80 })
+    const star = starsRef.current.find(s => s.friendId === selectedFriendId)
+    if (!friend || !star) return
+    const { camera, pivot } = sceneRef.current
+    cancelFlyRef.current?.()
     highlightLines(linesRef.current, friend.id)
+    cancelFlyRef.current = flyToStar(pivot, camera,
+      new THREE.Vector3(...friend.starConfig.position), () => {
+        cancelFlyRef.current = null
+        pinnedFriendIdRef.current = friend.id
+        setPinnedFriend(friend)
+        const p = worldToScreen(star.root, camera, window.innerWidth, window.innerHeight)
+        setPinnedPos(clampToViewport(p.x + 22, p.y - 12, CARD_W, CARD_H,
+          window.innerWidth, window.innerHeight))
+      })
   }, [selectedFriendId])
 
   return (
