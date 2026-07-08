@@ -19,7 +19,15 @@ export function buildAtlasPrompt(context: FriendAtlasContext): string {
 4. 不要编造用户没有记录过的事实。
 5. 输出必须是 JSON，不要输出 Markdown 代码块以外的文字。
 6. 所有建议都要温和、具体、可执行。
-7. 用中文输出。
+7. memories 里的 valence 表示该次互动的情绪效价（positive/neutral/negative），initiator 表示发起方（me=用户主动，friend=好友主动，both=共同/自然发生）。
+   - relationshipTrend 必须参考 valence 的正负分布和 initiator 的平衡（长期只有一方发起是重要信号）。
+   - warnings 优先基于 valence 为 negative 的记录。
+8. 如果 friend.relationshipGoal 存在（maintain=维持现状，deepen=更进一步，repair=修复关系），
+   conversationTopics、suitableActivities、warnings 都要围绕这个目标给建议；repair 时优先温和的修复性建议。
+9. 区分"记录"与"推断"：凡不是用户记录里直接出现、而是你推断出来的内容，必须在句末标注"（推测）"。
+10. missingInfoQuestions：给出恰好 3 个问题——补充哪些观察最能提高这份图鉴的准确度。
+    问题要具体到下次相处时可以直接留意（例如"TA 聊到工作时情绪如何"），不要问抽象问题。
+11. 用中文输出。
 
 FriendAtlasContext：
 ${JSON.stringify(context, null, 2)}
@@ -35,6 +43,7 @@ ${overflowNote}
   "warnings": ["相处注意1", "相处注意2"],
   "suitableActivities": ["适合一起做的活动1", "活动2"],
   "relationshipTrend": "根据记录判断关系趋势。如果资料不足，请说明不确定。",
+  "missingInfoQuestions": ["最能提高图鉴准确度的问题1", "问题2", "问题3"],
   "evidence": [
     { "type": "memory", "id": "memory id if available", "date": "YYYY-MM-DD if available", "text": "依据说明" }
   ]

@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import type { Friend, Relationship } from '@/lib/types'
+import type { Friend, Relationship, RelationshipGoal } from '@/lib/types'
 import { getZodiac } from '@/lib/zodiac'
 import { generateStarConfig } from '@/lib/starGen'
 import { findSafePosition } from '@/lib/poissonDisk'
@@ -11,6 +11,12 @@ import RelationshipEditor from './RelationshipEditor'
 
 const MBTI_OPTIONS = ['INTJ','INTP','ENTJ','ENTP','INFJ','INFP','ENFJ','ENFP',
   'ISTJ','ISFJ','ESTJ','ESFJ','ISTP','ISFP','ESTP','ESFP']
+
+const GOAL_OPTIONS: { value: RelationshipGoal; label: string }[] = [
+  { value: 'maintain', label: '维持现状' },
+  { value: 'deepen',   label: '更进一步' },
+  { value: 'repair',   label: '修复关系' },
+]
 
 interface Props { initial?: Friend }
 
@@ -27,6 +33,7 @@ export default function FriendForm({ initial }: Props) {
   const [notes,   setNotes]   = useState(initial?.notes ?? '')
   const [important, setImportant] = useState(initial?.important ?? false)
   const [rels,    setRels]    = useState<Relationship[]>(initial?.relationships ?? [])
+  const [goal,    setGoal]    = useState<RelationshipGoal | ''>(initial?.relationshipGoal ?? '')
   const [saving,  setSaving]  = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
@@ -54,6 +61,7 @@ export default function FriendForm({ initial }: Props) {
       memories:  initial?.memories  ?? [],
       relationships: rels,
       notes:    notes || undefined,
+      relationshipGoal: goal || undefined,
       starConfig,
       atlasId:  initial?.atlasId,
       createdAt: initial?.createdAt ?? new Date().toISOString(),
@@ -146,6 +154,15 @@ export default function FriendForm({ initial }: Props) {
                 relationships={rels}
                 onChange={setRels}
               />
+            )}
+            {field('我对这段关系的期待（只有你可见，会影响图鉴建议的方向）',
+              <div style={{ display:'flex', gap:8 }}>
+                {GOAL_OPTIONS.map(o => (
+                  <button key={o.value} type="button"
+                    onClick={() => setGoal(goal === o.value ? '' : o.value)}
+                    style={importanceButtonStyle(goal === o.value)}>{o.label}</button>
+                ))}
+              </div>
             )}
             {field('备注', <textarea value={notes} onChange={e=>setNotes(e.target.value)} rows={3} style={{...inputStyle,resize:'vertical'}}/>)}
           </>)}

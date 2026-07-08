@@ -25,6 +25,7 @@ function normalizeFriend(friend: Partial<Friend>): Friend {
     memories: friend.memories ?? [],
     relationships: friend.relationships ?? [],
     notes: friend.notes,
+    relationshipGoal: friend.relationshipGoal,
     starConfig: friend.starConfig ?? DEFAULT_STAR_CONFIG,
     atlasId: friend.atlasId,
     createdAt: friend.createdAt ?? new Date().toISOString(),

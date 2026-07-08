@@ -6,6 +6,7 @@ import { safeParseAIJson } from '@/lib/ai/json'
 import { OUTPUT_LIMITS } from '@/lib/ai/tokenEstimate'
 import type { Atlas, AtlasChatMessage, AtlasEvidence } from '@/lib/types'
 import { isAuthorized } from '@/lib/auth/verifyRequest'
+import { validateEvidence } from '@/lib/ai/validateEvidence'
 
 interface AskAtlasRequest {
   context: FriendAtlasContext
@@ -66,7 +67,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     ok: true,
     answer: parsed.data.answer,
-    evidence: parsed.data.evidence ?? [],
+    evidence: validateEvidence(parsed.data.evidence, new Set(context.memories.map(m => m.id))),
     suggestedFollowUps: parsed.data.suggestedFollowUps ?? [],
   })
 }

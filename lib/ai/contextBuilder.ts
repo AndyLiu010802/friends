@@ -16,11 +16,16 @@ export interface FriendAtlasContext {
     mbti?: string
     important: boolean
     notes?: string
+    relationshipGoal?: 'maintain' | 'deepen' | 'repair'
   }
   likes: string[]
   dislikes: string[]
   hobbies: string[]
-  memories: { id: string; date: string; title: string; content: string; tags: string[] }[]
+  memories: {
+    id: string; date: string; title: string; content: string; tags: string[]
+    valence?: 'positive' | 'neutral' | 'negative'
+    initiator?: 'me' | 'friend' | 'both'
+  }[]
   relationships: { friendId: string; friendName: string; label: string; closeness: 1 | 2 | 3 }[]
   stats: {
     memoryCount: number
@@ -53,11 +58,15 @@ export function buildFriendAtlasContext(
       mbti: friend.mbti,
       important: friend.important,
       notes: friend.notes,
+      relationshipGoal: friend.relationshipGoal,
     },
     likes: friend.likes,
     dislikes: friend.dislikes,
     hobbies: friend.hobbies,
-    memories: memories.map(m => ({ id: m.id, date: m.date, title: m.title, content: m.content, tags: m.tags })),
+    memories: memories.map(m => ({
+      id: m.id, date: m.date, title: m.title, content: m.content, tags: m.tags,
+      valence: m.valence, initiator: m.initiator,
+    })),
     relationships: friend.relationships.map(r => ({
       friendId: r.friendId,
       friendName: allFriends.find(f => f.id === r.friendId)?.name ?? '（已删除的好友）',
