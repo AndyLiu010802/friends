@@ -2,12 +2,13 @@
 import { useState, useEffect } from 'react'
 import { getFriends, getAtlasList, getAtlasChats, replaceFriends, replaceAtlasList, replaceAtlasChats } from '@/lib/store'
 import { backupToCloud, listCloudBackups, restoreFromCloud } from '@/lib/supabase'
+import { fs, text, gold, border, surface, radius } from '@/lib/ui/tokens'
 import type { CloudBackupSummary } from '@/lib/types'
 
 const btnStyle: React.CSSProperties = {
-  padding: '8px 20px', background: 'rgba(226,185,111,0.1)',
-  border: '1px solid rgba(226,185,111,0.4)', borderRadius: 10,
-  color: '#e2b96f', fontSize: 12, letterSpacing: 1, cursor: 'pointer',
+  padding: '8px 20px', background: surface.chip,
+  border: `1px solid ${border.goldStrong}`, borderRadius: radius.sm,
+  color: gold.base, fontSize: fs.sub, letterSpacing: 1, cursor: 'pointer',
 }
 
 export default function BackupPanel() {
@@ -89,22 +90,22 @@ export default function BackupPanel() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ color: '#e2e8f0', fontSize: 13, lineHeight: 2 }}>
+      <div style={{ color: text.primary, fontSize: fs.body, lineHeight: 2 }}>
         本地好友数量：{friendCount}　本地图鉴数量：{atlasCount}　本地问答数量：{chatCount}
       </div>
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
         <button onClick={handleBackup} disabled={busy} style={btnStyle}>备份到云端</button>
         <button onClick={handleListBackups} disabled={busy} style={btnStyle}>查看云端备份</button>
       </div>
-      {message && <div style={{ color: '#e2b96f', fontSize: 12 }}>{message}</div>}
+      {message && <div style={{ color: gold.base, fontSize: fs.sub }}>{message}</div>}
       {backups.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {backups.map(b => (
             <div key={b.id} style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              border: '1px solid rgba(226,185,111,0.15)', borderRadius: 10, padding: '10px 14px',
+              border: `1px solid ${border.goldFaint}`, borderRadius: radius.sm, padding: '10px 14px',
             }}>
-              <div style={{ color: '#e2e8f0', fontSize: 12 }}>
+              <div style={{ color: text.primary, fontSize: fs.sub }}>
                 {b.backupName}（{b.friendCount} 位朋友 · {b.atlasCount} 份图鉴 · {b.chatCount} 条问答）
               </div>
               <button onClick={() => handleRestore(b.id)} disabled={busy} style={btnStyle}>从此备份恢复</button>

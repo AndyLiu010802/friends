@@ -7,6 +7,7 @@ import type { Friend, Memory } from '@/lib/types'
 import FriendForm from '@/components/FriendForm'
 import MemoryTimeline from '@/components/MemoryTimeline'
 import Link from 'next/link'
+import { fs, gold, danger, border, surface, radius, font } from '@/lib/ui/tokens'
 
 export default function EditFriendPage() {
   const { friendId } = useParams<{ friendId: string }>()
@@ -44,7 +45,7 @@ export default function EditFriendPage() {
         minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center',
         background:'radial-gradient(ellipse at 30% 40%, #0d1b4b 0%, #020408 70%)',
       }}>
-        <div style={{ color:'rgba(226,185,111,0.5)', fontSize:12, letterSpacing:2 }}>加载中...</div>
+        <div style={{ color: gold.muted, fontSize: fs.meta, letterSpacing:2 }}>加载中...</div>
       </main>
     )
   }
@@ -56,9 +57,9 @@ export default function EditFriendPage() {
         background:'radial-gradient(ellipse at 30% 40%, #0d1b4b 0%, #020408 70%)',
       }}>
         <div style={{ width:'100%', maxWidth:560, margin:'0 auto' }}>
-          <Link href="/" style={{ color:'rgba(226,185,111,0.5)', fontSize:11, letterSpacing:2,
+          <Link href="/" style={{ color: gold.muted, fontSize: fs.meta, letterSpacing:2,
             textDecoration:'none', display:'block', marginBottom:32 }}>← 返回星图</Link>
-          <div style={{color:'#e2b96f',padding:40}}>好友不存在</div>
+          <div style={{color: gold.base, padding:40}}>好友不存在</div>
         </div>
       </main>
     )
@@ -70,10 +71,10 @@ export default function EditFriendPage() {
       background:'radial-gradient(ellipse at 30% 40%, #0d1b4b 0%, #020408 70%)',
     }}>
       <div style={{ width:'100%', maxWidth:560, margin:'0 auto' }}>
-        <Link href="/" style={{ color:'rgba(226,185,111,0.5)', fontSize:11, letterSpacing:2,
+        <Link href="/" style={{ color: gold.muted, fontSize: fs.meta, letterSpacing:2,
           textDecoration:'none', display:'block', marginBottom:32 }}>← 返回星图</Link>
-        <h1 style={{ color:'#e2b96f', fontFamily:'Ma Shan Zheng, cursive',
-          fontSize:28, letterSpacing:4, marginBottom:32 }}>✦ {friend.name}</h1>
+        <h1 style={{ color: gold.base, fontFamily: font.hand,
+          fontSize: fs.display, letterSpacing:4, marginBottom:32 }}>✦ {friend.name}</h1>
         <FriendForm initial={friend} />
         <div style={{ marginTop:48 }}>
           <MemoryTimeline
@@ -86,15 +87,15 @@ export default function EditFriendPage() {
           <div style={{ marginTop:40, textAlign:'center' }}>
             <Link href={`/atlas/${friend.id}`} style={{
               display:'inline-block', padding:'12px 32px',
-              background:'rgba(226,185,111,0.08)', border:'1px solid rgba(226,185,111,0.35)',
-              borderRadius:12, color:'#e2b96f', fontSize:12, letterSpacing:2, textDecoration:'none',
+              background: surface.chip, border:`1px solid ${border.gold}`,
+              borderRadius: radius.md, color: gold.base, fontSize: fs.sub, letterSpacing:2, textDecoration:'none',
             }}>✦ 生成图鉴</Link>
           </div>
         )}
         <div style={{ marginTop:56, textAlign:'center' }}>
           <button type="button" onClick={handleDelete} style={{
-            background:'none', border:'1px solid rgba(239,68,68,0.3)', borderRadius:10,
-            color:'rgba(252,165,165,0.75)', fontSize:11, letterSpacing:2, padding:'8px 20px',
+            background:'none', border:`1px solid ${danger.border}`, borderRadius: radius.sm,
+            color: danger.text, fontSize: fs.meta, letterSpacing:2, padding:'8px 20px',
             cursor:'pointer',
           }}>删除好友</button>
         </div>

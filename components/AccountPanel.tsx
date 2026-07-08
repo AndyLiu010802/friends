@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { isSupabaseConfigured } from '@/lib/auth/config'
+import { fs, text, gold, border, surface, radius } from '@/lib/ui/tokens'
 
 export default function AccountPanel() {
   const [email, setEmail] = useState<string | null>(null)
@@ -12,7 +13,7 @@ export default function AccountPanel() {
   }, [])
 
   if (!isSupabaseConfigured()) {
-    return <p style={{ color: '#e2e8f0', fontSize: 12 }}>本地模式，未启用云端账号。</p>
+    return <p style={{ color: text.primary, fontSize: fs.sub }}>本地模式，未启用云端账号。</p>
   }
 
   async function logout() {
@@ -22,13 +23,13 @@ export default function AccountPanel() {
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-      <span style={{ color: '#e2e8f0', fontSize: 12 }}>
+      <span style={{ color: text.primary, fontSize: fs.sub }}>
         {email ? `已登录：${email}` : '未登录'}
       </span>
       <button type="button" onClick={logout} style={{
-        padding: '6px 14px', background: 'rgba(255,255,255,0.04)',
-        border: '1px solid rgba(226,185,111,0.2)', borderRadius: 8,
-        color: 'rgba(226,185,111,0.7)', fontSize: 11, letterSpacing: 1, cursor: 'pointer',
+        padding: '6px 14px', background: surface.input,
+        border: `1px solid ${border.goldFaint}`, borderRadius: radius.sm,
+        color: gold.muted, fontSize: fs.meta, letterSpacing: 1, cursor: 'pointer',
       }}>退出登录</button>
     </div>
   )

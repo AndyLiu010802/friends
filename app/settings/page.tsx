@@ -2,6 +2,15 @@
 import Link from 'next/link'
 import BackupPanel from '@/components/BackupPanel'
 import AccountPanel from '@/components/AccountPanel'
+import { fs, text, gold, border, surface, radius, font } from '@/lib/ui/tokens'
+
+const section: React.CSSProperties = {
+  background: surface.section, border: `1px solid ${border.goldFaint}`,
+  borderRadius: radius.lg, padding: '20px 24px', marginBottom: 24,
+}
+const sectionTitle: React.CSSProperties = {
+  color: gold.muted, fontSize: fs.meta, letterSpacing: 3, marginBottom: 16,
+}
 
 export default function SettingsPage() {
   return (
@@ -11,39 +20,30 @@ export default function SettingsPage() {
     }}>
       <div style={{ maxWidth: 620, margin: '0 auto' }}>
         <Link href="/" style={{
-          color: 'rgba(226,185,111,0.5)', fontSize: 11, letterSpacing: 2,
+          color: gold.muted, fontSize: fs.meta, letterSpacing: 2,
           textDecoration: 'none', display: 'block', marginBottom: 32,
         }}>← 返回星图</Link>
 
-        <h1 style={{ color: '#e2b96f', fontFamily: 'Ma Shan Zheng, cursive', fontSize: 28, letterSpacing: 4, marginBottom: 32 }}>设置</h1>
+        <h1 style={{ color: gold.base, fontFamily: font.hand, fontSize: fs.display, letterSpacing: 4, marginBottom: 32 }}>设置</h1>
 
-        <section style={{
-          background: 'rgba(226,185,111,0.04)', border: '1px solid rgba(226,185,111,0.15)',
-          borderRadius: 14, padding: '20px 24px', marginBottom: 24,
-        }}>
-          <div style={{ color: 'rgba(226,185,111,0.6)', fontSize: 10, letterSpacing: 3, marginBottom: 16 }}>✦ 账号</div>
+        <section style={section}>
+          <div style={sectionTitle}>✦ 账号</div>
           <AccountPanel />
         </section>
 
-        <section style={{
-          background: 'rgba(226,185,111,0.04)', border: '1px solid rgba(226,185,111,0.15)',
-          borderRadius: 14, padding: '20px 24px', marginBottom: 24,
-        }}>
-          <div style={{ color: 'rgba(226,185,111,0.6)', fontSize: 10, letterSpacing: 3, marginBottom: 16 }}>✦ 云端备份</div>
+        <section style={section}>
+          <div style={sectionTitle}>✦ 云端备份</div>
           <BackupPanel />
         </section>
 
-        <section style={{
-          background: 'rgba(226,185,111,0.04)', border: '1px solid rgba(226,185,111,0.15)',
-          borderRadius: 14, padding: '20px 24px',
-        }}>
-          <div style={{ color: 'rgba(226,185,111,0.6)', fontSize: 10, letterSpacing: 3, marginBottom: 12 }}>✦ AI 使用成本参考</div>
-          <p style={{ color: '#e2e8f0', fontSize: 12, lineHeight: 2 }}>
+        <section style={{ ...section, marginBottom: 0 }}>
+          <div style={{ ...sectionTitle, marginBottom: 12 }}>✦ AI 使用成本参考</div>
+          <p style={{ color: text.primary, fontSize: fs.sub, lineHeight: 2 }}>
             根据当前记录量：<br />
             生成一个普通好友图鉴预计约 $0.20–$0.50<br />
             一次普通问答预计约 $0.10–$0.30
           </p>
-          <p style={{ color: 'rgba(226,185,111,0.4)', fontSize: 11, marginTop: 8 }}>
+          <p style={{ color: text.faint, fontSize: fs.meta, marginTop: 8 }}>
             该估算只是前端粗略估算，实际费用以模型后台账单为准。
           </p>
         </section>

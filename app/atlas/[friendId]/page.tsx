@@ -9,6 +9,7 @@ import { calculateAtlasConfidence } from '@/lib/atlasConfidence'
 import type { Atlas, Friend } from '@/lib/types'
 import Link from 'next/link'
 import AtlasChatBox from '@/components/AtlasChatBox'
+import { fs, text, gold, purple, danger, border, surface, radius, font } from '@/lib/ui/tokens'
 
 const CONFIDENCE_LABEL: Record<'low' | 'medium' | 'high', string> = { low: '低', medium: '中', high: '高' }
 
@@ -81,7 +82,7 @@ export default function AtlasPage() {
     return (
       <main style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center',
         background:'radial-gradient(ellipse at 20% 30%, #0d1b4b 0%, #020408 70%)' }}>
-        <div style={{ color:'rgba(226,185,111,0.5)', fontSize:12, letterSpacing:2 }}>加载中...</div>
+        <div style={{ color: gold.muted, fontSize: fs.meta, letterSpacing:2 }}>加载中...</div>
       </main>
     )
   }
@@ -91,9 +92,9 @@ export default function AtlasPage() {
       <main style={{ minHeight:'100vh', padding:'60px 24px 80px',
         background:'radial-gradient(ellipse at 20% 30%, #0d1b4b 0%, #020408 70%)' }}>
         <div style={{ width:'100%', maxWidth:620, margin:'0 auto' }}>
-          <Link href="/" style={{ color:'rgba(226,185,111,0.5)', fontSize:11, letterSpacing:2,
+          <Link href="/" style={{ color: gold.muted, fontSize: fs.meta, letterSpacing:2,
             textDecoration:'none', display:'block', marginBottom:32 }}>← 返回星图</Link>
-          <div style={{ color:'#e2b96f', padding:40 }}>好友不存在</div>
+          <div style={{ color: gold.base, padding:40 }}>好友不存在</div>
         </div>
       </main>
     )
@@ -106,42 +107,42 @@ export default function AtlasPage() {
     <main style={{ height:'100vh', padding:'60px 24px 80px', overflowY:'auto',
       background:'radial-gradient(ellipse at 20% 30%, #0d1b4b 0%, #020408 70%)' }}>
       <div style={{ maxWidth:620, margin:'0 auto' }}>
-        <Link href="/" style={{ color:'rgba(226,185,111,0.5)', fontSize:11, letterSpacing:2,
+        <Link href="/" style={{ color: gold.muted, fontSize: fs.meta, letterSpacing:2,
           textDecoration:'none', display:'block', marginBottom:32 }}>← 返回星图</Link>
 
         <div style={{ textAlign:'center', marginBottom:32 }}>
-          <div style={{ color:'rgba(155,142,196,0.5)', fontSize:10, letterSpacing:3, marginBottom:8 }}>FRIEND ATLAS</div>
-          <h1 style={{ color:'#e2b96f', fontFamily:'Ma Shan Zheng, cursive', fontSize:36, letterSpacing:6 }}>{friend.name}</h1>
+          <div style={{ color: purple.muted, fontSize: fs.eyebrow, letterSpacing:3, marginBottom:8 }}>FRIEND ATLAS</div>
+          <h1 style={{ color: gold.base, fontFamily: font.hand, fontSize: fs.hero, letterSpacing:6 }}>{friend.name}</h1>
           {[friend.mbti, friend.zodiac].filter(Boolean).join(' · ') && (
-            <div style={{ color:'rgba(155,142,196,0.6)', fontSize:11, marginTop:6 }}>
+            <div style={{ color: purple.muted, fontSize: fs.meta, marginTop:6 }}>
               {[friend.mbti, friend.zodiac].filter(Boolean).join(' · ')}
             </div>
           )}
         </div>
 
-        <div style={{ textAlign:'center', color:'rgba(226,185,111,0.5)', fontSize:11, marginBottom:8 }}>
+        <div style={{ textAlign:'center', color: text.faint, fontSize: fs.meta, marginBottom:8 }}>
           预计本次会消耗约 {estimatePreview.estimatedInputTokens.toLocaleString()} input tokens + {estimatePreview.estimatedOutputTokens.toLocaleString()} output tokens，预计成本约 ${estimatePreview.estimatedCostUsd.toFixed(2)}。
         </div>
 
-        <div style={{ textAlign:'center', color:'rgba(226,185,111,0.4)', fontSize:11, marginBottom:24 }}>
+        <div style={{ textAlign:'center', color: text.faint, fontSize: fs.meta, marginBottom:24 }}>
           图鉴可信度：{CONFIDENCE_LABEL[confidence.level]}——{confidence.reason}
         </div>
 
-        {error && <div style={{ textAlign:'center', color:'#f87171', fontSize:12, marginBottom:16 }}>{error}</div>}
+        {error && <div style={{ textAlign:'center', color: danger.text, fontSize: fs.sub, marginBottom:16 }}>{error}</div>}
 
         {!atlas && (
           <div style={{ textAlign:'center' }}>
             <button onClick={generate} disabled={loading} style={{
-              padding:'14px 40px', background:'rgba(226,185,111,0.1)',
-              border:'1px solid rgba(226,185,111,0.4)', borderRadius:14,
-              color:'#e2b96f', fontSize:13, letterSpacing:2, cursor:'pointer',
+              padding:'14px 40px', background: surface.chip,
+              border:`1px solid ${border.goldStrong}`, borderRadius: radius.lg,
+              color: gold.base, fontSize: fs.sub, letterSpacing:2, cursor:'pointer',
             }}>{loading ? '✦ 生成中...' : '✦ 生成图鉴'}</button>
           </div>
         )}
 
         {atlas && (
           <div style={{ display:'flex', flexDirection:'column', gap:24 }}>
-            <div style={{ textAlign:'center', color:'rgba(226,185,111,0.4)', fontSize:10 }}>
+            <div style={{ textAlign:'center', color: text.faint, fontSize: fs.meta }}>
               由 {atlas.model} 生成于 {new Date(atlas.generatedAt).toLocaleString()}
             </div>
 
@@ -151,10 +152,10 @@ export default function AtlasPage() {
               { label:'最近互动', content: atlas.recentInteractionInsight },
               { label:'关系趋势', content: atlas.relationshipTrend },
             ].map(({ label, content }) => (
-              <section key={label} style={{ background:'rgba(226,185,111,0.04)', border:'1px solid rgba(226,185,111,0.15)',
-                borderRadius:14, padding:'20px 24px' }}>
-                <div style={{ color:'rgba(226,185,111,0.6)', fontSize:10, letterSpacing:3, marginBottom:10 }}>✦ {label}</div>
-                <p style={{ color:'#e2e8f0', fontSize:13, lineHeight:2 }}>{content}</p>
+              <section key={label} style={{ background: surface.section, border:`1px solid ${border.goldFaint}`,
+                borderRadius: radius.lg, padding:'20px 24px' }}>
+                <div style={{ color: gold.muted, fontSize: fs.meta, letterSpacing:3, marginBottom:10 }}>✦ {label}</div>
+                <p style={{ color: text.primary, fontSize: fs.body, lineHeight:2 }}>{content}</p>
               </section>
             ))}
 
@@ -163,45 +164,45 @@ export default function AtlasPage() {
               { label:'下次可以聊的话题', items: atlas.conversationTopics },
               { label:'适合一起做的活动', items: atlas.suitableActivities },
             ].map(({ label, items }) => items.length > 0 && (
-              <section key={label} style={{ background:'rgba(226,185,111,0.04)', border:'1px solid rgba(226,185,111,0.15)',
-                borderRadius:14, padding:'20px 24px' }}>
-                <div style={{ color:'rgba(226,185,111,0.6)', fontSize:10, letterSpacing:3, marginBottom:12 }}>✦ {label}</div>
+              <section key={label} style={{ background: surface.section, border:`1px solid ${border.goldFaint}`,
+                borderRadius: radius.lg, padding:'20px 24px' }}>
+                <div style={{ color: gold.muted, fontSize: fs.meta, letterSpacing:3, marginBottom:12 }}>✦ {label}</div>
                 <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
                   {items.map(item => (
-                    <span key={item} style={{ padding:'4px 12px', border:'1px solid rgba(226,185,111,0.25)',
-                      borderRadius:20, color:'#e2b96f', fontSize:11 }}>{item}</span>
+                    <span key={item} style={{ padding:'4px 12px', border:`1px solid ${border.gold}`,
+                      borderRadius: radius.pill, color: gold.base, fontSize: fs.meta }}>{item}</span>
                   ))}
                 </div>
               </section>
             ))}
 
-            <section style={{ background:'rgba(226,185,111,0.04)', border:'1px solid rgba(226,185,111,0.15)', borderRadius:14, padding:'20px 24px' }}>
-              <div style={{ color:'rgba(226,185,111,0.6)', fontSize:10, letterSpacing:3, marginBottom:12 }}>✦ 礼物建议</div>
+            <section style={{ background: surface.section, border:`1px solid ${border.goldFaint}`, borderRadius: radius.lg, padding:'20px 24px' }}>
+              <div style={{ color: gold.muted, fontSize: fs.meta, letterSpacing:3, marginBottom:12 }}>✦ 礼物建议</div>
               <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
                 {atlas.giftIdeas.map(g => (
-                  <span key={g} style={{ padding:'4px 12px', border:'1px solid rgba(226,185,111,0.25)', borderRadius:20, color:'#e2b96f', fontSize:11 }}>{g}</span>
+                  <span key={g} style={{ padding:'4px 12px', border:`1px solid ${border.gold}`, borderRadius: radius.pill, color: gold.base, fontSize: fs.meta }}>{g}</span>
                 ))}
               </div>
             </section>
 
-            <section style={{ background:'rgba(239,68,68,0.04)', border:'1px solid rgba(239,68,68,0.15)', borderRadius:14, padding:'20px 24px' }}>
-              <div style={{ color:'rgba(239,68,68,0.6)', fontSize:10, letterSpacing:3, marginBottom:12 }}>⚠ 相处注意</div>
+            <section style={{ background: danger.bg, border:`1px solid ${danger.borderFaint}`, borderRadius: radius.lg, padding:'20px 24px' }}>
+              <div style={{ color: danger.text, fontSize: fs.meta, letterSpacing:3, marginBottom:12 }}>⚠ 相处注意</div>
               <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
                 {atlas.warnings.map(w => (
-                  <span key={w} style={{ padding:'4px 12px', border:'1px solid rgba(239,68,68,0.2)', borderRadius:20, color:'rgba(252,165,165,0.8)', fontSize:11 }}>{w}</span>
+                  <span key={w} style={{ padding:'4px 12px', border:`1px solid ${danger.border}`, borderRadius: radius.pill, color: danger.text, fontSize: fs.meta }}>{w}</span>
                 ))}
               </div>
             </section>
 
             {(atlas.missingInfoQuestions?.length ?? 0) > 0 && (
-              <section style={{ background:'rgba(155,142,196,0.05)', border:'1px solid rgba(155,142,196,0.2)',
-                borderRadius:14, padding:'20px 24px' }}>
-                <div style={{ color:'rgba(155,142,196,0.8)', fontSize:10, letterSpacing:3, marginBottom:12 }}>
+              <section style={{ background:'rgba(155,142,196,0.05)', border:`1px solid ${border.purple}`,
+                borderRadius: radius.lg, padding:'20px 24px' }}>
+                <div style={{ color: purple.base, fontSize: fs.meta, letterSpacing:3, marginBottom:12 }}>
                   ✧ 补充这些，图鉴会更准
                 </div>
                 <ul style={{ margin:0, paddingLeft:18, display:'flex', flexDirection:'column', gap:8 }}>
                   {atlas.missingInfoQuestions!.map(q => (
-                    <li key={q} style={{ color:'#cbd5e1', fontSize:12, lineHeight:1.8 }}>{q}</li>
+                    <li key={q} style={{ color: text.dim, fontSize: fs.sub, lineHeight:1.8 }}>{q}</li>
                   ))}
                 </ul>
               </section>
@@ -212,8 +213,8 @@ export default function AtlasPage() {
             <div style={{ textAlign:'center', marginTop:8 }}>
               <button onClick={generate} disabled={loading} style={{
                 padding:'8px 24px', background:'none',
-                border:'1px solid rgba(226,185,111,0.2)', borderRadius:10,
-                color:'rgba(226,185,111,0.5)', fontSize:10, letterSpacing:1, cursor:'pointer',
+                border:`1px solid ${border.goldFaint}`, borderRadius: radius.sm,
+                color: gold.muted, fontSize: fs.meta, letterSpacing:1, cursor:'pointer',
               }}>{loading ? '✦ 生成中...' : '重新生成'}</button>
             </div>
           </div>
