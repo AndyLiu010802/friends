@@ -1,5 +1,9 @@
 export type MediaType = 'photo' | 'video'
 
+export type MemoryValence = 'positive' | 'neutral' | 'negative'
+export type MemoryInitiator = 'me' | 'friend' | 'both'
+export type RelationshipGoal = 'maintain' | 'deepen' | 'repair'
+
 export interface Media {
   id: string
   type: MediaType
@@ -18,6 +22,8 @@ export interface Memory {
   content: string
   tags: string[]
   media: Media[]
+  valence?: MemoryValence     // 这次互动的情绪效价
+  initiator?: MemoryInitiator // 谁发起的这次互动
 }
 
 export type Closeness = 1 | 2 | 3
@@ -54,6 +60,7 @@ export interface Friend {
   memories: Memory[]
   relationships: Relationship[]
   notes?: string
+  relationshipGoal?: RelationshipGoal // 用户对这段关系的期待
   starConfig: StarConfig
   atlasId?: string
   createdAt: string
@@ -92,6 +99,7 @@ export interface Atlas {
   warnings: string[]
   suitableActivities: string[]
   relationshipTrend: string
+  missingInfoQuestions?: string[] // AI 建议用户补充观察的问题
 
   evidence: AtlasEvidence[]
   rawInput: Partial<Friend>
