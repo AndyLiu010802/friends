@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 
-export function buildStarfield(): THREE.Points {
-  const N = 1500
+export function buildStarfield(count = 1500): THREE.Points {
+  const N = count
   const pos = new Float32Array(N * 3)
   const col = new Float32Array(N * 3)
   for (let i = 0; i < N; i++) {

@@ -5,10 +5,11 @@ let _scene:    THREE.Scene | null = null
 let _camera:   THREE.PerspectiveCamera | null = null
 let _pivot:    THREE.Group | null = null
 
-export function initScene(canvas: HTMLCanvasElement) {
+export function initScene(canvas: HTMLCanvasElement, opts?: { coarsePointer?: boolean }) {
   _renderer = new THREE.WebGLRenderer({ antialias: true, canvas })
   _renderer.setSize(window.innerWidth, window.innerHeight)
-  _renderer.setPixelRatio(Math.min(devicePixelRatio, 2))
+  // 触屏设备（手机/平板）降低渲染像素比：省电、保帧率。
+  _renderer.setPixelRatio(Math.min(devicePixelRatio, opts?.coarsePointer ? 1.5 : 2))
   _renderer.toneMapping = THREE.ACESFilmicToneMapping
   _renderer.toneMappingExposure = 1.3
 
