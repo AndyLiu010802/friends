@@ -4,6 +4,7 @@ import { useState } from 'react'
 import type { Memory, Media, MemoryValence, MemoryInitiator } from '@/lib/types'
 import MediaUpload from './MediaUpload'
 import MediaItem from './MediaItem'
+import { fs, text, gold, purple, danger, border, surface, radius, font } from '@/lib/ui/tokens'
 
 interface Props { friendId: string; memories: Memory[]; onChange: (m: Memory[]) => void }
 
@@ -82,24 +83,24 @@ export default function MemoryTimeline({ friendId, memories, onChange }: Props) 
     onChange(memories.filter(m => m.id !== id))
   }
 
-  const inp: React.CSSProperties = { background:'rgba(255,255,255,0.04)', border:'1px solid rgba(226,185,111,0.15)',
-    borderRadius:6, padding:'8px 12px', color:'#e2e8f0', fontSize:12, width:'100%', fontFamily:'Noto Serif SC, serif' }
+  const inp: React.CSSProperties = { background: surface.input, border:`1px solid ${border.goldFaint}`,
+    borderRadius: radius.sm, padding:'8px 12px', color: text.primary, fontSize: fs.sub, width:'100%', fontFamily: font.serif }
 
   const actionBtn: React.CSSProperties = { background:'none', border:'none', cursor:'pointer',
-    fontSize:11, letterSpacing:1, padding:'2px 6px' }
+    fontSize: fs.meta, letterSpacing:1, padding:'2px 6px' }
 
   const pill = (active: boolean): React.CSSProperties => ({
-    padding:'4px 12px', borderRadius:20, cursor:'pointer', fontSize:11,
-    border: active ? '1px solid #e2b96f' : '1px solid rgba(226,185,111,0.2)',
-    background: active ? 'rgba(226,185,111,0.12)' : 'transparent',
-    color: active ? '#e2b96f' : 'rgba(155,142,196,0.7)',
+    padding:'4px 12px', borderRadius: radius.pill, cursor:'pointer', fontSize: fs.meta,
+    border: active ? `1px solid ${gold.base}` : `1px solid ${border.goldFaint}`,
+    background: active ? surface.chip : 'transparent',
+    color: active ? gold.base : purple.muted,
   })
 
   function valenceInitiatorPicker(d: Draft, set: (next: Draft) => void) {
     return (
       <>
         <div style={{ display:'flex', gap:6, flexWrap:'wrap', alignItems:'center' }}>
-          <span style={{ color:'rgba(155,142,196,0.6)', fontSize:10 }}>这次互动感觉：</span>
+          <span style={{ color: purple.muted, fontSize: fs.meta }}>这次互动感觉：</span>
           {VALENCE_OPTIONS.map(o => (
             <button key={o.value} type="button" style={pill(d.valence === o.value)}
               onClick={() => set({ ...d, valence: d.valence === o.value ? undefined : o.value })}>
@@ -108,7 +109,7 @@ export default function MemoryTimeline({ friendId, memories, onChange }: Props) 
           ))}
         </div>
         <div style={{ display:'flex', gap:6, flexWrap:'wrap', alignItems:'center' }}>
-          <span style={{ color:'rgba(155,142,196,0.6)', fontSize:10 }}>谁发起的：</span>
+          <span style={{ color: purple.muted, fontSize: fs.meta }}>谁发起的：</span>
           {INITIATOR_OPTIONS.map(o => (
             <button key={o.value} type="button" style={pill(d.initiator === o.value)}
               onClick={() => set({ ...d, initiator: d.initiator === o.value ? undefined : o.value })}>
@@ -123,65 +124,65 @@ export default function MemoryTimeline({ friendId, memories, onChange }: Props) 
   return (
     <div>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
-        <span style={{ color:'rgba(226,185,111,0.7)', fontSize:11, letterSpacing:2 }}>行动记录</span>
+        <span style={{ color: gold.muted, fontSize: fs.meta, letterSpacing:2 }}>行动记录</span>
         <button type="button" onClick={()=>setAdding(true)} style={{ ...inp, width:'auto', padding:'4px 12px', cursor:'pointer' }}>+ 记录一颗星尘</button>
       </div>
 
       {adding && (
-        <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(226,185,111,0.15)',
-          borderRadius:10, padding:16, marginBottom:16, display:'flex', flexDirection:'column', gap:10 }}>
+        <div style={{ background: surface.raise, border:`1px solid ${border.goldFaint}`,
+          borderRadius: radius.md, padding:16, marginBottom:16, display:'flex', flexDirection:'column', gap:10 }}>
           <input placeholder="日期" type="date" value={draft.date??''} onChange={e=>setDraft({...draft,date:e.target.value})} style={inp}/>
           <input placeholder="标题" value={draft.title??''} onChange={e=>setDraft({...draft,title:e.target.value})} style={inp}/>
           <textarea placeholder="发生了什么？TA 当时说了什么、做了什么？" rows={3} value={draft.content??''} onChange={e=>setDraft({...draft,content:e.target.value})} style={{...inp,resize:'vertical'}}/>
           <input placeholder="标签（逗号分隔）" value={draft.tags??''} onChange={e=>setDraft({...draft,tags:e.target.value})} style={inp}/>
           {valenceInitiatorPicker(draft, setDraft)}
-          <div style={{ color:'rgba(155,142,196,0.5)', fontSize:10, lineHeight:1.6 }}>
+          <div style={{ color: purple.muted, fontSize: fs.meta, lineHeight:1.6 }}>
             小提示：记下 TA 的原话和具体反应，比“他人很好”更能帮图鉴读懂这段关系。
           </div>
-          <button type="button" onClick={saveMemory} style={{...inp,width:'auto',cursor:'pointer',color:'#e2b96f'}}>保存</button>
+          <button type="button" onClick={saveMemory} style={{...inp,width:'auto',cursor:'pointer',color: gold.base}}>保存</button>
         </div>
       )}
 
       {memories.length === 0 && !adding && (
-        <div style={{ color:'rgba(155,142,196,0.6)', fontSize:12, lineHeight:1.8, padding:'8px 0' }}>
+        <div style={{ color: purple.muted, fontSize: fs.sub, lineHeight:1.8, padding:'8px 0' }}>
           这里还没有回忆。<br/>记录一次见面、一句话、一个小细节，都会让这颗星星更亮。
         </div>
       )}
 
       {memories.map(m => (
-        <div key={m.id} style={{ borderLeft:'2px solid rgba(226,185,111,0.2)', paddingLeft:16, marginBottom:20 }}>
+        <div key={m.id} style={{ borderLeft:`2px solid ${border.goldFaint}`, paddingLeft:16, marginBottom:20 }}>
           {editingId === m.id ? (
-            <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(226,185,111,0.15)',
-              borderRadius:10, padding:16, display:'flex', flexDirection:'column', gap:10 }}>
+            <div style={{ background: surface.raise, border:`1px solid ${border.goldFaint}`,
+              borderRadius: radius.md, padding:16, display:'flex', flexDirection:'column', gap:10 }}>
               <input type="date" value={editDraft.date??''} onChange={e=>setEditDraft({...editDraft,date:e.target.value})} style={inp}/>
               <input placeholder="标题" value={editDraft.title??''} onChange={e=>setEditDraft({...editDraft,title:e.target.value})} style={inp}/>
               <textarea placeholder="描述" rows={3} value={editDraft.content??''} onChange={e=>setEditDraft({...editDraft,content:e.target.value})} style={{...inp,resize:'vertical'}}/>
               <input placeholder="标签（逗号分隔）" value={editDraft.tags??''} onChange={e=>setEditDraft({...editDraft,tags:e.target.value})} style={inp}/>
               {valenceInitiatorPicker(editDraft, setEditDraft)}
               <div style={{ display:'flex', gap:8 }}>
-                <button type="button" onClick={saveEdit} style={{...inp,width:'auto',cursor:'pointer',color:'#e2b96f'}}>保存</button>
-                <button type="button" onClick={cancelEdit} style={{...inp,width:'auto',cursor:'pointer',color:'rgba(226,185,111,0.5)'}}>取消</button>
+                <button type="button" onClick={saveEdit} style={{...inp,width:'auto',cursor:'pointer',color: gold.base}}>保存</button>
+                <button type="button" onClick={cancelEdit} style={{...inp,width:'auto',cursor:'pointer',color: gold.muted}}>取消</button>
               </div>
             </div>
           ) : (
             <>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
-                <div style={{ color:'rgba(226,185,111,0.5)', fontSize:10 }}>
+                <div style={{ color: gold.muted, fontSize: fs.meta }}>
                   {m.date}{m.valence && <span style={{ marginLeft:6 }}>{VALENCE_EMOJI[m.valence]}</span>}
                 </div>
                 <div style={{ display:'flex', gap:4 }}>
-                  <button type="button" onClick={()=>startEdit(m)} style={{...actionBtn, color:'rgba(226,185,111,0.7)'}}>编辑</button>
-                  <button type="button" onClick={()=>deleteMemory(m.id)} style={{...actionBtn, color:'rgba(252,165,165,0.7)'}}>删除</button>
+                  <button type="button" onClick={()=>startEdit(m)} style={{...actionBtn, color: gold.muted}}>编辑</button>
+                  <button type="button" onClick={()=>deleteMemory(m.id)} style={{...actionBtn, color: danger.text}}>删除</button>
                 </div>
               </div>
-              <div style={{ color:'#e2e8f0', fontSize:13, margin:'4px 0' }}>{m.title}</div>
-              {m.content && <div style={{ color:'rgba(155,142,196,0.7)', fontSize:11, lineHeight:1.6 }}>{m.content}</div>}
+              <div style={{ color: text.primary, fontSize: fs.body, margin:'4px 0' }}>{m.title}</div>
+              {m.content && <div style={{ color: purple.muted, fontSize: fs.sub, lineHeight:1.6 }}>{m.content}</div>}
               {m.tags.length > 0 && (
-                <div style={{ color:'rgba(155,142,196,0.5)', fontSize:10, marginTop:4 }}>{m.tags.join(' · ')}</div>
+                <div style={{ color: purple.muted, fontSize: fs.meta, marginTop:4 }}>{m.tags.join(' · ')}</div>
               )}
               <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginTop:8 }}>
                 {m.media.map(md => (
-                  <div key={md.id} style={{ width:60, height:60, borderRadius:6, overflow:'hidden', background:'rgba(255,255,255,0.05)' }}>
+                  <div key={md.id} style={{ width:60, height:60, borderRadius: radius.sm, overflow:'hidden', background:'rgba(255,255,255,0.05)' }}>
                     <MediaItem media={md} />
                   </div>
                 ))}

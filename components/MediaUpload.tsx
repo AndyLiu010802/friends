@@ -1,6 +1,7 @@
 'use client'
 import { useRef } from 'react'
 import { uploadMedia } from '@/lib/supabase'
+import { fs, gold, border, surface, radius } from '@/lib/ui/tokens'
 import type { Media } from '@/lib/types'
 
 interface Props {
@@ -34,9 +35,9 @@ export default function MediaUpload({ friendId, folder, onUploaded }: Props) {
   return (
     <div>
       <button type="button" onClick={() => inputRef.current?.click()}
-        style={{ padding:'6px 14px', background:'rgba(255,255,255,0.04)',
-          border:'1px solid rgba(226,185,111,0.2)', borderRadius:8,
-          color:'rgba(226,185,111,0.7)', fontSize:11, letterSpacing:1, cursor:'pointer' }}>
+        style={{ padding:'6px 14px', background: surface.input,
+          border:`1px solid ${border.goldFaint}`, borderRadius: radius.sm,
+          color: gold.muted, fontSize: fs.meta, letterSpacing:1, cursor:'pointer' }}>
         + 上传照片/视频
       </button>
       <input ref={inputRef} type="file" accept="image/*,video/*"

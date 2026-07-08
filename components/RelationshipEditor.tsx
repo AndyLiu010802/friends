@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { getFriends } from '@/lib/store'
+import { fs, text, gold, purple, border, surface, radius, font } from '@/lib/ui/tokens'
 import type { Relationship } from '@/lib/types'
 
 // Relationships are stored one-directionally on the friend being edited (not mirrored
@@ -26,12 +27,12 @@ export default function RelationshipEditor({ currentFriendId, relationships, onC
     setSel(''); setLabel(''); setClose(2)
   }
 
-  const inp: React.CSSProperties = { background:'rgba(255,255,255,0.04)', border:'1px solid rgba(226,185,111,0.15)',
-    borderRadius:6, padding:'8px 12px', color:'#e2e8f0', fontSize:12, fontFamily:'Noto Serif SC, serif' }
+  const inp: React.CSSProperties = { background: surface.input, border:`1px solid ${border.goldFaint}`,
+    borderRadius: radius.sm, padding:'8px 12px', color: text.primary, fontSize: fs.sub, fontFamily: font.serif }
 
   return (
     <div>
-      <div style={{ color:'rgba(226,185,111,0.7)', fontSize:11, letterSpacing:2, marginBottom:12 }}>共同好友关系</div>
+      <div style={{ color: gold.muted, fontSize: fs.meta, letterSpacing:2, marginBottom:12 }}>共同好友关系</div>
       <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:12 }}>
         <select value={sel} onChange={e=>setSel(e.target.value)} style={inp}>
           <option value="">选择好友</option>
@@ -43,17 +44,17 @@ export default function RelationshipEditor({ currentFriendId, relationships, onC
           <option value={2}>比较熟</option>
           <option value={3}>很亲近</option>
         </select>
-        <button type="button" onClick={add} style={{...inp,cursor:'pointer',color:'#e2b96f'}}>添加</button>
+        <button type="button" onClick={add} style={{...inp,cursor:'pointer',color: gold.base}}>添加</button>
       </div>
       {relationships.map(r => {
         const f = allFriends.find(f=>f.id===r.friendId)
         return (
           <div key={r.friendId} style={{ display:'flex', justifyContent:'space-between', alignItems:'center',
-            padding:'6px 12px', marginBottom:6, background:'rgba(255,255,255,0.03)',
-            border:'1px solid rgba(226,185,111,0.1)', borderRadius:8 }}>
-            <span style={{ color:'#e2e8f0', fontSize:12 }}>{f?.name} · {r.label}</span>
+            padding:'6px 12px', marginBottom:6, background: surface.raise,
+            border:`1px solid ${border.goldFaint}`, borderRadius: radius.sm }}>
+            <span style={{ color: text.primary, fontSize: fs.sub }}>{f?.name} · {r.label}</span>
             <button type="button" onClick={()=>onChange(relationships.filter(x=>x.friendId!==r.friendId))}
-              style={{ background:'none', border:'none', color:'rgba(155,142,196,0.5)', cursor:'pointer', fontSize:12 }}>✕</button>
+              style={{ background:'none', border:'none', color: purple.muted, cursor:'pointer', fontSize: fs.sub }}>✕</button>
           </div>
         )
       })}

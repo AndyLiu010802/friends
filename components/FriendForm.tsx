@@ -8,6 +8,7 @@ import { saveFriend, getFriends } from '@/lib/store'
 import { pushFriend } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import RelationshipEditor from './RelationshipEditor'
+import { fs, text, gold, border, surface, radius, font } from '@/lib/ui/tokens'
 
 const MBTI_OPTIONS = ['INTJ','INTP','ENTJ','ENTP','INFJ','INFP','ENFJ','ENFP',
   'ISTJ','ISFJ','ESTJ','ESFJ','ISTP','ISFP','ESTP','ESFP']
@@ -75,37 +76,37 @@ export default function FriendForm({ initial }: Props) {
 
   const field = (label: string, el: React.ReactNode) => (
     <label style={{ display:'flex', flexDirection:'column', gap:6 }}>
-      <span style={{ color:'rgba(226,185,111,0.7)', fontSize:11, letterSpacing:2 }}>{label}</span>
+      <span style={{ color: gold.muted, fontSize: fs.meta, letterSpacing:2 }}>{label}</span>
       {el}
     </label>
   )
 
   const inputStyle: React.CSSProperties = {
-    background:'rgba(255,255,255,0.04)', border:'1px solid rgba(226,185,111,0.2)',
-    borderRadius:8, padding:'10px 14px', color:'#e2e8f0', fontSize:13,
-    outline:'none', fontFamily:'Noto Serif SC, serif',
+    background: surface.input, border:`1px solid ${border.goldFaint}`,
+    borderRadius: radius.sm, padding:'10px 14px', color: text.primary, fontSize: fs.body,
+    outline:'none', fontFamily: font.serif,
   }
 
   const section = (title: string, children: React.ReactNode) => (
-    <div style={{ border:'1px solid rgba(226,185,111,0.15)', borderRadius:12, padding:'16px 18px',
+    <div style={{ border:`1px solid ${border.goldFaint}`, borderRadius: radius.lg, padding:'16px 18px',
       display:'flex', flexDirection:'column', gap:16 }}>
-      <div style={{ color:'#e2b96f', fontSize:12, letterSpacing:2 }}>{title}</div>
+      <div style={{ color: gold.base, fontSize: fs.meta, letterSpacing:2 }}>{title}</div>
       {children}
     </div>
   )
 
   const modeButtonStyle = (active: boolean): React.CSSProperties => ({
-    padding:'6px 16px', borderRadius:20, cursor:'pointer', fontSize:11, letterSpacing:1,
-    border: active ? '1px solid #e2b96f' : '1px solid rgba(226,185,111,0.25)',
-    background: active ? 'rgba(226,185,111,0.15)' : 'transparent',
-    color: active ? '#e2b96f' : 'rgba(226,185,111,0.5)',
+    padding:'6px 16px', borderRadius: radius.pill, cursor:'pointer', fontSize: fs.meta, letterSpacing:1,
+    border: active ? `1px solid ${gold.base}` : `1px solid ${border.gold}`,
+    background: active ? surface.chip : 'transparent',
+    color: active ? gold.base : gold.muted,
   })
 
   const importanceButtonStyle = (active: boolean): React.CSSProperties => ({
-    padding:'6px 14px', borderRadius:8, cursor:'pointer', fontSize:12,
-    border: active ? '1px solid #e2b96f' : '1px solid rgba(226,185,111,0.25)',
-    background: active ? 'rgba(226,185,111,0.12)' : 'transparent',
-    color: active ? '#e2b96f' : '#cbd5e1',
+    padding:'6px 14px', borderRadius: radius.sm, cursor:'pointer', fontSize: fs.sub,
+    border: active ? `1px solid ${gold.base}` : `1px solid ${border.gold}`,
+    background: active ? surface.chip : 'transparent',
+    color: active ? gold.base : text.dim,
   })
 
   const importantToggle = (
@@ -170,9 +171,9 @@ export default function FriendForm({ initial }: Props) {
       )}
 
       <button type="submit" disabled={saving || !name.trim()} style={{
-        marginTop:8, padding:'12px 0', background:'rgba(226,185,111,0.12)',
-        border:'1px solid rgba(226,185,111,0.4)', borderRadius:12,
-        color:'#e2b96f', fontSize:13, letterSpacing:2, cursor:'pointer',
+        marginTop:8, padding:'12px 0', background: surface.chip,
+        border:`1px solid ${border.goldStrong}`, borderRadius: radius.md,
+        color: gold.base, fontSize: fs.sub, letterSpacing:2, cursor:'pointer',
       }}>
         {saving ? '保存中...' : '✦ 保存好友'}
       </button>
