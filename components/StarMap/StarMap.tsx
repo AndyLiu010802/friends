@@ -7,14 +7,14 @@ import { initTrail } from './mouseTrail'
 import { buildStar, type StarObject } from './StarBuilder'
 import { buildConstellationLines, highlightLines, type LineObject } from './constellationLines'
 import FriendCard from '@/components/FriendCard'
-import { getFriends } from '@/lib/store'
-import { pullAll } from '@/lib/supabase'
 import { isTap, applyZoom, createPinchTracker } from '@/lib/gestures'
 import { useIsMobile } from '@/lib/useIsMobile'
 import type { Friend } from '@/lib/types'
 import * as THREE from 'three'
 
 interface Props {
+  friends: Friend[]
+  cinematic?: boolean
   selectedFriendId?: string | null
   onDeselect?: () => void
 }
@@ -22,14 +22,13 @@ interface Props {
 // 捏合像素距离 → 相机 z 轴距离的换算系数
 const PINCH_ZOOM_FACTOR = 0.02
 
-export default function StarMap({ selectedFriendId = null, onDeselect }: Props) {
+export default function StarMap({ friends, selectedFriendId = null, onDeselect }: Props) {
   const threeRef = useRef<HTMLCanvasElement>(null)
   const trailRef = useRef<HTMLCanvasElement>(null)
   const [hoveredFriend, setHoveredFriend] = useState<Friend | null>(null)
   const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 })
   const [pinnedFriend, setPinnedFriend] = useState<Friend | null>(null)
   const [pinnedPos, setPinnedPos] = useState<{ x: number; y: number } | null>(null)
-  const [friendsLoaded, setFriendsLoaded] = useState(false)
   // 鼠标等精确指针才有拖尾与 hover；挂载时判定一次（SSR 关闭，window 必存在）
   const [finePointer] = useState(() => window.matchMedia('(pointer: fine)').matches)
   const isMobile = useIsMobile()
@@ -37,28 +36,17 @@ export default function StarMap({ selectedFriendId = null, onDeselect }: Props) 
   const linesRef  = useRef<LineObject[]>([])
   const pinnedFriendIdRef = useRef<string | null>(null)
   const friendsRef = useRef<Friend[]>([])
+  const sceneRef = useRef<ReturnType<typeof initScene> | null>(null)
 
   useEffect(() => {
     const coarsePointer = window.matchMedia('(pointer: coarse)').matches
-    const { renderer, scene, camera, pivot } = initScene(threeRef.current!, { coarsePointer })
+    const sceneCtx = initScene(threeRef.current!, { coarsePointer })
+    sceneRef.current = sceneCtx
+    const { renderer, scene, camera, pivot } = sceneCtx
     if (trailRef.current) initTrail(trailRef.current)
 
     // Background
     scene.add(buildStarfield(coarsePointer ? 750 : 1500))
-
-    // Load friends
-    pullAll().then(() => {
-      const friends = getFriends()
-      friendsRef.current = friends
-      setFriendsLoaded(true)
-      const stars   = friends.map(f => buildStar(f))
-      starsRef.current = stars
-      stars.forEach(s => pivot.add(s.root))
-
-      const lines = buildConstellationLines(friends)
-      linesRef.current = lines
-      lines.forEach(l => pivot.add(l.line))
-    }).catch(console.error)
 
     // Raycaster for hover + tap
     const raycaster = new THREE.Raycaster()
@@ -79,7 +67,7 @@ export default function StarMap({ selectedFriendId = null, onDeselect }: Props) 
       const hits = raycaster.intersectObjects(starsRef.current.map(s => s.hitMesh))
       if (!hits.length) return null
       const star = starsRef.current.find(s => s.hitMesh === hits[0].object)!
-      return getFriends().find(f => f.id === star.friendId) ?? null
+      return friendsRef.current.find(f => f.id === star.friendId) ?? null
     }
 
     const onPointerDown = (e: PointerEvent) => {
@@ -190,9 +178,34 @@ export default function StarMap({ selectedFriendId = null, onDeselect }: Props) 
       canvas.removeEventListener('pointerdown', onPointerDown)
       canvas.removeEventListener('pointerup', onCanvasPointerUp)
       canvas.removeEventListener('wheel', onWheel)
+      sceneRef.current = null
       disposeScene()
     }
   }, [])
+
+  // 星与连线由 friends prop 驱动（数据所有权在 HomePage）
+  useEffect(() => {
+    const sceneCtx = sceneRef.current
+    if (!sceneCtx) return
+    const { pivot } = sceneCtx
+    friendsRef.current = friends
+
+    starsRef.current.forEach(s => pivot.remove(s.root))
+    linesRef.current.forEach(l => pivot.remove(l.line))
+    if (friends.length === 0) {
+      starsRef.current = []
+      linesRef.current = []
+      return
+    }
+
+    const stars = friends.map(f => buildStar(f))
+    starsRef.current = stars
+    stars.forEach(s => pivot.add(s.root))
+
+    const lines = buildConstellationLines(friends)
+    linesRef.current = lines
+    lines.forEach(l => pivot.add(l.line))
+  }, [friends])
 
   useEffect(() => {
     if (!selectedFriendId) return
@@ -202,7 +215,7 @@ export default function StarMap({ selectedFriendId = null, onDeselect }: Props) 
     setPinnedFriend(friend)
     setPinnedPos({ x: window.innerWidth / 2 - 130, y: window.innerHeight / 2 - 80 })
     highlightLines(linesRef.current, friend.id)
-  }, [selectedFriendId, friendsLoaded])
+  }, [selectedFriendId])
 
   return (
     <>
