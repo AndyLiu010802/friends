@@ -105,4 +105,17 @@ describe('buildFriendAtlasContext', () => {
     expect(context.stats.growthStage).toBe(expectedStage.stage)
     expect(context.stats.energyLevel).toBe(expectedEnergy.level)
   })
+
+  it('includes relationshipGoal and memory valence/initiator in the context', () => {
+    const friend = makeFriend({
+      relationshipGoal: 'repair',
+      memories: [{
+        id: 'm1', date: '2026-06-01', title: '吃饭', content: '聊开了',
+        tags: [], media: [], valence: 'positive', initiator: 'friend',
+      }],
+    })
+    const context = buildFriendAtlasContext(friend, [friend])
+    expect(context.friend.relationshipGoal).toBe('repair')
+    expect(context.memories[0]).toMatchObject({ valence: 'positive', initiator: 'friend' })
+  })
 })
