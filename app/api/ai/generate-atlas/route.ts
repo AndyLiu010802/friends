@@ -21,6 +21,7 @@ interface AtlasAIOutput {
   warnings: string[]
   suitableActivities: string[]
   relationshipTrend: string
+  missingInfoQuestions?: string[]
   evidence: Atlas['evidence']
 }
 
@@ -82,6 +83,7 @@ export async function POST(req: NextRequest) {
     warnings: parsed.data.warnings,
     suitableActivities: parsed.data.suitableActivities,
     relationshipTrend: parsed.data.relationshipTrend,
+    missingInfoQuestions: parsed.data.missingInfoQuestions ?? [],
     evidence: parsed.data.evidence ?? [],
     rawInput: {},
   }

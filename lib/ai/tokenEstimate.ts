@@ -9,7 +9,7 @@ export interface TokenEstimate {
 }
 
 export const OUTPUT_LIMITS = {
-  atlas: 2200,
+  atlas: 2600,
   question: 1200,
 }
 
