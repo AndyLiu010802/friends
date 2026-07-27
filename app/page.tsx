@@ -10,6 +10,7 @@ import SearchOverlay from '@/components/SearchOverlay'
 import QuickNoteOverlay from '@/components/QuickNoteOverlay'
 import { getFriends } from '@/lib/store'
 import { pullAll } from '@/lib/supabase'
+import { useIsMobile } from '@/lib/useIsMobile'
 import { fs, gold, border, radius, font } from '@/lib/ui/tokens'
 import type { Friend } from '@/lib/types'
 
@@ -32,6 +33,7 @@ export default function HomePage() {
   const [focusedFriendId, setFocusedFriendId] = useState<string | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
   const [noteOpen, setNoteOpen] = useState(false)
+  const isMobile = useIsMobile()
 
   // 挂载即拉数——入场页兼职加载屏，不把加载成本转嫁给点击之后
   useEffect(() => {
@@ -55,22 +57,22 @@ export default function HomePage() {
             fontSize: fs.title, letterSpacing:4 }}>✦ 友记</span>
           <span style={{ display:'flex', gap:10 }}>
             <button type="button" onClick={() => setNoteOpen(true)} style={{
-              color: gold.base, fontSize: fs.meta, letterSpacing:2,
+              color: gold.base, fontSize: fs.meta, letterSpacing: isMobile ? 0 : 2,
               border:`1px solid ${border.gold}`, borderRadius: radius.pill,
-              padding:'10px 18px', background:'none', cursor:'pointer',
+              padding: isMobile ? '10px 12px' : '10px 18px', background:'none', cursor:'pointer',
               fontFamily:'inherit', pointerEvents:'auto',
-            }}>✎ 记一笔</button>
+            }}>{isMobile ? '✎' : '✎ 记一笔'}</button>
             <button type="button" onClick={() => setSearchOpen(true)} style={{
-              color: gold.base, fontSize: fs.meta, letterSpacing:2,
+              color: gold.base, fontSize: fs.meta, letterSpacing: isMobile ? 0 : 2,
               border:`1px solid ${border.gold}`, borderRadius: radius.pill,
-              padding:'10px 18px', background:'none', cursor:'pointer',
+              padding: isMobile ? '10px 12px' : '10px 18px', background:'none', cursor:'pointer',
               fontFamily:'inherit', pointerEvents:'auto',
-            }}>⌕ 寻星</button>
+            }}>{isMobile ? '⌕' : '⌕ 寻星'}</button>
             <Link href="/friend/new" style={{
-              color: gold.base, fontSize: fs.meta, letterSpacing:2,
+              color: gold.base, fontSize: fs.meta, letterSpacing: isMobile ? 0 : 2,
               border:`1px solid ${border.gold}`, borderRadius: radius.pill,
-              padding:'10px 18px', textDecoration:'none', pointerEvents:'auto',
-            }}>✦ 新纪录</Link>
+              padding: isMobile ? '10px 12px' : '10px 18px', textDecoration:'none', pointerEvents:'auto',
+            }}>{isMobile ? '✦' : '✦ 新纪录'}</Link>
           </span>
         </nav>
       )}
