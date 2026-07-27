@@ -25,7 +25,6 @@ export default function EditFriendPage() {
     // exist during SSR.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setFriend(found)
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setAllFriends(all)
   }, [friendId])
 

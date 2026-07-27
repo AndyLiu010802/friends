@@ -45,6 +45,8 @@ export default function SearchOverlay({ friends, open, onOpenChange, onPick }: P
   // 每次打开重置查询并聚焦
   useEffect(() => {
     if (open) {
+      // 打开瞬间重置搜索状态:effect 是对 open prop 变化的响应,无渲染期替代方案
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setQuery('')
       setActiveIndex(0)
       inputRef.current?.focus()
