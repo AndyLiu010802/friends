@@ -27,6 +27,7 @@ export default function SearchOverlay({ friends, open, onOpenChange, onPick }: P
   // 全局快捷键:Ctrl/Cmd+K 开(输入框聚焦时不劫持),Esc 关
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
+      if (e.isComposing) return
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         const tag = (e.target as HTMLElement | null)?.tagName
         if (!open && (tag === 'INPUT' || tag === 'TEXTAREA')) return
@@ -59,6 +60,7 @@ export default function SearchOverlay({ friends, open, onOpenChange, onPick }: P
   }
 
   function onInputKeyDown(e: React.KeyboardEvent) {
+    if (e.nativeEvent.isComposing) return
     if (e.key === 'ArrowDown') {
       e.preventDefault()
       setActiveIndex(i => Math.min(i + 1, results.length - 1))

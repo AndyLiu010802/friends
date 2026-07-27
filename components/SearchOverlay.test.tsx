@@ -66,6 +66,13 @@ describe('SearchOverlay', () => {
     expect(onPick).toHaveBeenCalledWith('b')
   })
 
+  it('IME 组词中的 Enter 不触发选中', () => {
+    const { onPick } = setup()
+    const input = screen.getByPlaceholderText(/寻找/)
+    fireEvent.keyDown(input, { key: 'Enter', isComposing: true })
+    expect(onPick).not.toHaveBeenCalled()
+  })
+
   it('Esc 关闭', () => {
     const { onOpenChange } = setup()
     fireEvent.keyDown(window, { key: 'Escape' })
