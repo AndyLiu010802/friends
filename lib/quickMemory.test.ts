@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { fallbackTitle, buildQuickMemory, sortMemoriesDesc } from './quickMemory'
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import { fallbackTitle, buildQuickMemory, sortMemoriesDesc, extractMemory } from './quickMemory'
 import type { Memory } from './types'
 
 function mem(date: string, time?: string): Memory {
@@ -62,5 +62,42 @@ describe('sortMemoriesDesc', () => {
     const list = [mem('2026-07-01'), mem('2026-07-27')]
     sortMemoriesDesc(list)
     expect(list[0].date).toBe('2026-07-01')
+  })
+})
+
+describe('extractMemory', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  function stubFetch(response: unknown) {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ json: () => Promise.resolve(response) }))
+  }
+
+  it('成功时返回清洗后的结果', async () => {
+    stubFetch({ ok: true, title: '一起爬山', tags: ['爬山'], valence: 'positive' })
+    const r = await extractMemory('她约我爬山', '阿明')
+    expect(r).toEqual({ title: '一起爬山', tags: ['爬山'], valence: 'positive', initiator: undefined })
+  })
+
+  it('ok:false 时返回 null', async () => {
+    stubFetch({ ok: false })
+    expect(await extractMemory('x', 'y')).toBeNull()
+  })
+
+  it('响应缺字段时返回 null', async () => {
+    stubFetch({ ok: true, tags: [] })
+    expect(await extractMemory('x', 'y')).toBeNull()
+  })
+
+  it('fetch 抛错时返回 null', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')))
+    expect(await extractMemory('x', 'y')).toBeNull()
+  })
+
+  it('携带 text 与 friendName 调用提取接口', async () => {
+    stubFetch({ ok: true, title: 't', tags: [] })
+    await extractMemory('内容', '阿明')
+    const [url, init] = vi.mocked(fetch).mock.calls[0]
+    expect(url).toBe('/api/ai/extract-memory')
+    expect(JSON.parse((init as RequestInit).body as string)).toEqual({ text: '内容', friendName: '阿明' })
   })
 })

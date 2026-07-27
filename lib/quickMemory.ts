@@ -32,3 +32,23 @@ export function sortMemoriesDesc(memories: Memory[]): Memory[] {
   return [...memories].sort((a, b) =>
     b.date.localeCompare(a.date) || (b.time ?? '00:00').localeCompare(a.time ?? '00:00'))
 }
+
+// 调 AI 提取路由;任何失败(网络/超时/ok:false/字段缺失)返回 null,由调用方走降级
+export async function extractMemory(text: string, friendName: string): Promise<ExtractResult | null> {
+  try {
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => ctrl.abort(), 5000)
+    const res = await fetch('/api/ai/extract-memory', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, friendName }),
+      signal: ctrl.signal,
+    })
+    clearTimeout(timer)
+    const data = await res.json()
+    if (!data.ok || typeof data.title !== 'string' || !Array.isArray(data.tags)) return null
+    return { title: data.title, tags: data.tags, valence: data.valence, initiator: data.initiator }
+  } catch {
+    return null
+  }
+}
