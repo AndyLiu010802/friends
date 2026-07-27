@@ -23,7 +23,9 @@ export default function InsightPanel({ insights, onSelectFriend, onQuickNote, on
 
   const actionBtn: React.CSSProperties = {
     background: 'none', border: 'none', cursor: 'pointer',
-    fontSize: fs.meta, letterSpacing: 1, padding: '2px 6px', fontFamily: font.serif,
+    fontSize: fs.sub, letterSpacing: 1, fontFamily: font.serif,
+    padding: isMobile ? '8px 10px' : '2px 6px',
+    minHeight: isMobile ? 36 : undefined,
   }
 
   const insightRow = (insight: FriendInsight) => (
@@ -31,7 +33,7 @@ export default function InsightPanel({ insights, onSelectFriend, onQuickNote, on
       background: surface.raise, border: `1px solid ${border.goldFaint}`,
       borderRadius: radius.sm, padding: isMobile ? '12px 12px' : '8px 10px',
     }}>
-      <div style={{ color: text.primary, fontSize: fs.sub, lineHeight: 1.6, fontFamily: font.serif }}>
+      <div style={{ color: text.primary, fontSize: fs.sub, lineHeight: 1.6, fontFamily: font.serif, overflowWrap: 'break-word' }}>
         {insight.text}
       </div>
       <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
@@ -67,7 +69,11 @@ export default function InsightPanel({ insights, onSelectFriend, onQuickNote, on
   )
 
   if (isMobile) {
-    if (insights.length === 0) return null
+    if (insights.length === 0) {
+      // 列表清空时收起状态,避免之后新信号出现直接弹开面板
+      if (expanded) setExpanded(false)
+      return null
+    }
     if (!expanded) {
       return (
         <button type="button" onClick={() => setExpanded(true)} style={{

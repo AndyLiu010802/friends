@@ -94,4 +94,18 @@ describe('InsightPanel(星语提醒)', () => {
     setup([], true)
     expect(screen.queryByRole('button', { name: /星语提醒/ })).not.toBeInTheDocument()
   })
+
+  it('分组按 3→2→1 顺序渲染', () => {
+    setup()
+    const titles = screen.getAllByText(/今天必看|值得留意|顺手补全/).map(e => e.textContent)
+    expect(titles).toEqual(['今天必看', '值得留意', '顺手补全'])
+  })
+
+  it('手机:知道了不收起面板', () => {
+    const { onDismiss } = setup(THREE, true)
+    fireEvent.click(screen.getByRole('button', { name: /星语提醒 · 3/ }))
+    fireEvent.click(screen.getAllByText('知道了')[0])
+    expect(onDismiss).toHaveBeenCalled()
+    expect(screen.getByText('今天必看')).toBeInTheDocument()
+  })
 })
