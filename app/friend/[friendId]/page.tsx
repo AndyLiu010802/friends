@@ -8,6 +8,7 @@ import FriendForm from '@/components/FriendForm'
 import MemoryTimeline from '@/components/MemoryTimeline'
 import Link from 'next/link'
 import SearchOverlay from '@/components/SearchOverlay'
+import QuickNoteOverlay from '@/components/QuickNoteOverlay'
 import { fs, gold, danger, border, surface, radius, font } from '@/lib/ui/tokens'
 
 export default function EditFriendPage() {
@@ -16,6 +17,7 @@ export default function EditFriendPage() {
   const [friend, setFriend] = useState<Friend | null | undefined>(undefined)
   const [allFriends, setAllFriends] = useState<Friend[]>([])
   const [searchOpen, setSearchOpen] = useState(false)
+  const [noteOpen, setNoteOpen] = useState(false)
 
   useEffect(() => {
     const all = getFriends()
@@ -79,11 +81,18 @@ export default function EditFriendPage() {
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:32 }}>
           <Link href="/" style={{ color: gold.muted, fontSize: fs.meta, letterSpacing:2,
             textDecoration:'none' }}>← 返回星图</Link>
-          <button type="button" onClick={() => setSearchOpen(true)} style={{
-            color: gold.muted, fontSize: fs.meta, letterSpacing:2,
-            background:'none', border:'none', cursor:'pointer', fontFamily:'inherit',
-            padding:0,
-          }}>⌕ 寻星</button>
+          <span style={{ display:'flex', gap:16 }}>
+            <button type="button" onClick={() => setNoteOpen(true)} style={{
+              color: gold.muted, fontSize: fs.meta, letterSpacing:2,
+              background:'none', border:'none', cursor:'pointer', fontFamily:'inherit',
+              padding:0,
+            }}>✎ 记一笔</button>
+            <button type="button" onClick={() => setSearchOpen(true)} style={{
+              color: gold.muted, fontSize: fs.meta, letterSpacing:2,
+              background:'none', border:'none', cursor:'pointer', fontFamily:'inherit',
+              padding:0,
+            }}>⌕ 寻星</button>
+          </span>
         </div>
         <h1 style={{ color: gold.base, fontFamily: font.hand,
           fontSize: fs.display, letterSpacing:4, marginBottom:32 }}>✦ {friend.name}</h1>
@@ -118,6 +127,17 @@ export default function EditFriendPage() {
         open={searchOpen}
         onOpenChange={setSearchOpen}
         onPick={id => router.push(`/friend/${id}`)}
+      />
+      <QuickNoteOverlay
+        friends={allFriends}
+        open={noteOpen}
+        onOpenChange={setNoteOpen}
+        defaultFriendId={friend.id}
+        onSaved={() => {
+          const all = getFriends()
+          setAllFriends(all)
+          setFriend(all.find(f => f.id === friendId) ?? null)
+        }}
       />
     </main>
   )
