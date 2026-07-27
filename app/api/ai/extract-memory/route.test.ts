@@ -35,12 +35,12 @@ describe('POST /api/ai/extract-memory', () => {
   it('成功提取并过滤非法枚举值', async () => {
     vi.mocked(isAuthorized).mockResolvedValue(true)
     vi.mocked(generateWithAI).mockResolvedValue(JSON.stringify({
-      title: '一起爬山', tags: ['爬山', '', '公园', '多余1', '多余2'], valence: 'positive', initiator: 'alien',
+      title: '一起\n爬山', tags: ['  爬山 ', '', '公园', '多余1', '多余2'], valence: 'positive', initiator: 'alien',
     }))
     const res = await POST(post({ text: '她约我爬山', friendName: '阿明' }))
     const data = await res.json()
     expect(data.ok).toBe(true)
-    expect(data.title).toBe('一起爬山')
+    expect(data.title).toBe('一起 爬山')
     expect(data.tags).toEqual(['爬山', '公园', '多余1'])
     expect(data.valence).toBe('positive')
     expect(data.initiator).toBeUndefined()

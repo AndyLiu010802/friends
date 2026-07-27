@@ -45,9 +45,9 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     ok: true,
-    title: d.title.trim().slice(0, 20),
+    title: d.title.replace(/\s+/g, ' ').trim().slice(0, 20),
     tags: Array.isArray(d.tags)
-      ? d.tags.filter((t): t is string => typeof t === 'string' && !!t.trim()).slice(0, 3)
+      ? d.tags.filter((t): t is string => typeof t === 'string').map(t => t.trim()).filter(Boolean).slice(0, 3)
       : [],
     valence: d.valence && VALENCES.has(d.valence) ? d.valence : undefined,
     initiator: d.initiator && INITIATORS.has(d.initiator) ? d.initiator : undefined,
