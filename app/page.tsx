@@ -126,7 +126,7 @@ export default function HomePage() {
           <QuickNoteOverlay
             friends={friends}
             open={noteOpen}
-            onOpenChange={setNoteOpen}
+            onOpenChange={o => { if (!o) setNoteFriendId(undefined); setNoteOpen(o) }}
             defaultFriendId={noteFriendId}
             onSaved={() => setFriends(getFriends())}
           />
