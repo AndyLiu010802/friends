@@ -18,6 +18,7 @@ export interface Media {
 export interface Memory {
   id: string
   date: string        // YYYY-MM-DD
+  time?: string        // HH:mm,记录时刻;新记录自动生成,旧数据无此字段
   title: string
   content: string
   tags: string[]
