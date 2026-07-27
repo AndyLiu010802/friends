@@ -14,10 +14,12 @@ export function getBirthdayStatus(
   label: string | null
   isToday: boolean
   isSoon: boolean
+  isWithin14: boolean
+  nextBirthdayISO: string | null
 } {
   const parsed = birthday ? parseBirthday(birthday) : null
   if (!parsed) {
-    return { daysUntil: null, label: null, isToday: false, isSoon: false }
+    return { daysUntil: null, label: null, isToday: false, isSoon: false, isWithin14: false, nextBirthdayISO: null }
   }
 
   const { month, day } = parsed
@@ -27,12 +29,15 @@ export function getBirthdayStatus(
     nextBirthday = new Date(now.getFullYear() + 1, month - 1, day)
   }
   const daysUntil = Math.round((nextBirthday.getTime() - today.getTime()) / 86400000)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const nextBirthdayISO = `${nextBirthday.getFullYear()}-${pad(nextBirthday.getMonth() + 1)}-${pad(nextBirthday.getDate())}`
+  const isWithin14 = daysUntil <= 14
 
   if (daysUntil === 0) {
-    return { daysUntil, label: '今天生日 🎂', isToday: true, isSoon: true }
+    return { daysUntil, label: '今天生日 🎂', isToday: true, isSoon: true, isWithin14, nextBirthdayISO }
   }
   if (daysUntil <= 7) {
-    return { daysUntil, label: `${daysUntil} 天后生日`, isToday: false, isSoon: true }
+    return { daysUntil, label: `${daysUntil} 天后生日`, isToday: false, isSoon: true, isWithin14, nextBirthdayISO }
   }
-  return { daysUntil, label: null, isToday: false, isSoon: false }
+  return { daysUntil, label: null, isToday: false, isSoon: false, isWithin14, nextBirthdayISO }
 }
