@@ -38,8 +38,8 @@ export default function SearchOverlay({ friends, open, onOpenChange, onPick }: P
         onOpenChange(false)
       }
     }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
+    window.addEventListener('keydown', onKeyDown, true)
+    return () => window.removeEventListener('keydown', onKeyDown, true)
   }, [open, onOpenChange])
 
   // 每次打开重置查询并聚焦

@@ -85,6 +85,16 @@ describe('SearchOverlay', () => {
     expect(notPrevented).toBe(false)
   })
 
+  it('Esc 先于先注册的冒泡监听器被处理(模拟 StarMap)', () => {
+    const deselect = vi.fn()
+    const starMapLike = (e: KeyboardEvent) => { if (e.defaultPrevented) return; if (e.key === 'Escape') deselect() }
+    window.addEventListener('keydown', starMapLike)
+    setup()
+    fireEvent.keyDown(document.body, { key: 'Escape' })
+    expect(deselect).not.toHaveBeenCalled()
+    window.removeEventListener('keydown', starMapLike)
+  })
+
   it('关闭状态下 Ctrl+K 打开', () => {
     const { onOpenChange } = setup({ open: false })
     fireEvent.keyDown(window, { key: 'k', ctrlKey: true })
