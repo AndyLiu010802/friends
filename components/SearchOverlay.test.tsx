@@ -79,6 +79,12 @@ describe('SearchOverlay', () => {
     expect(onOpenChange).toHaveBeenCalledWith(false)
   })
 
+  it('Esc 关闭时标记事件已处理(preventDefault)', () => {
+    setup()
+    const notPrevented = fireEvent.keyDown(window, { key: 'Escape' })
+    expect(notPrevented).toBe(false)
+  })
+
   it('关闭状态下 Ctrl+K 打开', () => {
     const { onOpenChange } = setup({ open: false })
     fireEvent.keyDown(window, { key: 'k', ctrlKey: true })

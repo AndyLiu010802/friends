@@ -34,6 +34,7 @@ export default function SearchOverlay({ friends, open, onOpenChange, onPick }: P
         e.preventDefault()
         onOpenChange(!open)
       } else if (e.key === 'Escape' && open) {
+        e.preventDefault()
         onOpenChange(false)
       }
     }
