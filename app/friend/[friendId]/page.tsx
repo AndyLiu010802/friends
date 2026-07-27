@@ -91,6 +91,7 @@ export default function EditFriendPage() {
         <div style={{ marginTop:48 }}>
           <MemoryTimeline
             friendId={friend.id}
+            friendName={friend.name}
             memories={friend.memories}
             onChange={handleMemoriesChange}
           />

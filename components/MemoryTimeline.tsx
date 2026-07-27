@@ -5,8 +5,9 @@ import type { Memory, Media, MemoryValence, MemoryInitiator } from '@/lib/types'
 import MediaUpload from './MediaUpload'
 import MediaItem from './MediaItem'
 import { fs, text, gold, purple, danger, border, surface, radius, font } from '@/lib/ui/tokens'
+import { extractMemory, buildQuickMemory, sortMemoriesDesc } from '@/lib/quickMemory'
 
-interface Props { friendId: string; memories: Memory[]; onChange: (m: Memory[]) => void }
+interface Props { friendId: string; friendName: string; memories: Memory[]; onChange: (m: Memory[]) => void }
 
 type Draft = Omit<Partial<Memory>, 'tags'> & { tags?: string }
 
@@ -26,26 +27,27 @@ const VALENCE_EMOJI: Record<MemoryValence, string> = {
   positive: '😊', neutral: '😐', negative: '😣',
 }
 
-export default function MemoryTimeline({ friendId, memories, onChange }: Props) {
+const QUICK_HINTS = [
+  '发生了什么?随手一记,AI 会整理好标题、标签和心情',
+  'TA 今天说了什么让你在意的话?',
+  '记下 TA 的原话和具体反应,比『他人很好』更有用',
+]
+
+export default function MemoryTimeline({ friendId, friendName, memories, onChange }: Props) {
   const [adding, setAdding] = useState(false)
-  const [draft, setDraft] = useState<Draft>({})
+  const [quickText, setQuickText] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [hintIndex, setHintIndex] = useState(0)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editDraft, setEditDraft] = useState<Draft>({})
 
-  function saveMemory() {
-    if (!draft.title || !draft.date) return
-    const mem: Memory = {
-      id: crypto.randomUUID(),
-      date:    draft.date!,
-      title:   draft.title!,
-      content: draft.content ?? '',
-      tags:    (draft.tags ?? '').split(',').map(t=>t.trim()).filter(Boolean),
-      media:   [],
-      valence:   draft.valence,
-      initiator: draft.initiator,
-    }
-    onChange([...memories, mem].sort((a,b)=>b.date.localeCompare(a.date)))
-    setDraft({}); setAdding(false)
+  async function saveQuick() {
+    const text = quickText.trim()
+    if (!text || saving) return
+    setSaving(true)
+    const extract = await extractMemory(text, friendName)
+    onChange(sortMemoriesDesc([...memories, buildQuickMemory(text, extract, new Date())]))
+    setQuickText(''); setSaving(false); setAdding(false)
   }
 
   function addMedia(memId: string, media: Media) {
@@ -54,7 +56,7 @@ export default function MemoryTimeline({ friendId, memories, onChange }: Props) 
 
   function startEdit(m: Memory) {
     setEditingId(m.id)
-    setEditDraft({ date: m.date, title: m.title, content: m.content, tags: m.tags.join(', '),
+    setEditDraft({ date: m.date, time: m.time, title: m.title, content: m.content, tags: m.tags.join(', '),
       valence: m.valence, initiator: m.initiator })
   }
 
@@ -68,13 +70,14 @@ export default function MemoryTimeline({ friendId, memories, onChange }: Props) 
     const updated = memories.map(m => m.id === editingId ? {
       ...m,
       date:    editDraft.date!,
+      time:    editDraft.time,
       title:   editDraft.title!,
       content: editDraft.content ?? '',
       tags:    (editDraft.tags ?? '').split(',').map(t=>t.trim()).filter(Boolean),
       valence:   editDraft.valence,
       initiator: editDraft.initiator,
     } : m)
-    onChange(updated.sort((a,b)=>b.date.localeCompare(a.date)))
+    onChange(sortMemoriesDesc(updated))
     cancelEdit()
   }
 
@@ -125,21 +128,22 @@ export default function MemoryTimeline({ friendId, memories, onChange }: Props) 
     <div>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
         <span style={{ color: gold.muted, fontSize: fs.meta, letterSpacing:2 }}>行动记录</span>
-        <button type="button" onClick={()=>setAdding(true)} style={{ ...inp, width:'auto', padding:'4px 12px', cursor:'pointer' }}>+ 记录一颗星尘</button>
+        <button type="button" onClick={() => { setAdding(true); setHintIndex(i => (i + 1) % QUICK_HINTS.length) }} style={{ ...inp, width:'auto', padding:'4px 12px', cursor:'pointer' }}>+ 记录一颗星尘</button>
       </div>
 
       {adding && (
         <div style={{ background: surface.raise, border:`1px solid ${border.goldFaint}`,
           borderRadius: radius.md, padding:16, marginBottom:16, display:'flex', flexDirection:'column', gap:10 }}>
-          <input placeholder="日期" type="date" value={draft.date??''} onChange={e=>setDraft({...draft,date:e.target.value})} style={inp}/>
-          <input placeholder="标题" value={draft.title??''} onChange={e=>setDraft({...draft,title:e.target.value})} style={inp}/>
-          <textarea placeholder="发生了什么？TA 当时说了什么、做了什么？" rows={3} value={draft.content??''} onChange={e=>setDraft({...draft,content:e.target.value})} style={{...inp,resize:'vertical'}}/>
-          <input placeholder="标签（逗号分隔）" value={draft.tags??''} onChange={e=>setDraft({...draft,tags:e.target.value})} style={inp}/>
-          {valenceInitiatorPicker(draft, setDraft)}
-          <div style={{ color: purple.muted, fontSize: fs.meta, lineHeight:1.6 }}>
-            小提示：记下 TA 的原话和具体反应，比“他人很好”更能帮图鉴读懂这段关系。
+          <textarea placeholder={QUICK_HINTS[hintIndex]} rows={3} value={quickText}
+            onChange={e=>setQuickText(e.target.value)} style={{...inp,resize:'vertical'}}/>
+          <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+            <button type="button" onClick={saveQuick} disabled={!quickText.trim() || saving}
+              style={{...inp,width:'auto',cursor: saving?'wait':'pointer',color: gold.base,
+                opacity: !quickText.trim()||saving ? 0.6 : 1}}>
+              {saving ? 'AI 整理中…' : '保存'}
+            </button>
+            <span style={{ color: purple.muted, fontSize: fs.meta }}>日期时间自动记录,标题标签交给 AI</span>
           </div>
-          <button type="button" onClick={saveMemory} style={{...inp,width:'auto',cursor:'pointer',color: gold.base}}>保存</button>
         </div>
       )}
 
@@ -155,6 +159,7 @@ export default function MemoryTimeline({ friendId, memories, onChange }: Props) 
             <div style={{ background: surface.raise, border:`1px solid ${border.goldFaint}`,
               borderRadius: radius.md, padding:16, display:'flex', flexDirection:'column', gap:10 }}>
               <input type="date" value={editDraft.date??''} onChange={e=>setEditDraft({...editDraft,date:e.target.value})} style={inp}/>
+              <input type="time" value={editDraft.time??''} onChange={e=>setEditDraft({...editDraft,time:e.target.value})} style={inp}/>
               <input placeholder="标题" value={editDraft.title??''} onChange={e=>setEditDraft({...editDraft,title:e.target.value})} style={inp}/>
               <textarea placeholder="描述" rows={3} value={editDraft.content??''} onChange={e=>setEditDraft({...editDraft,content:e.target.value})} style={{...inp,resize:'vertical'}}/>
               <input placeholder="标签（逗号分隔）" value={editDraft.tags??''} onChange={e=>setEditDraft({...editDraft,tags:e.target.value})} style={inp}/>
@@ -168,7 +173,7 @@ export default function MemoryTimeline({ friendId, memories, onChange }: Props) 
             <>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
                 <div style={{ color: gold.muted, fontSize: fs.meta }}>
-                  {m.date}{m.valence && <span style={{ marginLeft:6 }}>{VALENCE_EMOJI[m.valence]}</span>}
+                  {m.date}{m.time ? ` ${m.time}` : ''}{m.valence && <span style={{ marginLeft:6 }}>{VALENCE_EMOJI[m.valence]}</span>}
                 </div>
                 <div style={{ display:'flex', gap:4 }}>
                   <button type="button" onClick={()=>startEdit(m)} style={{...actionBtn, color: gold.muted}}>编辑</button>
