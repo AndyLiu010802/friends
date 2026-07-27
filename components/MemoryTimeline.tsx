@@ -1,6 +1,6 @@
 // components/MemoryTimeline.tsx
 'use client'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import type { Memory, Media, MemoryValence, MemoryInitiator } from '@/lib/types'
 import MediaUpload from './MediaUpload'
 import MediaItem from './MediaItem'
@@ -40,13 +40,15 @@ export default function MemoryTimeline({ friendId, friendName, memories, onChang
   const [hintIndex, setHintIndex] = useState(0)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editDraft, setEditDraft] = useState<Draft>({})
+  const memoriesRef = useRef(memories)
+  useEffect(() => { memoriesRef.current = memories }, [memories])
 
   async function saveQuick() {
     const text = quickText.trim()
     if (!text || saving) return
     setSaving(true)
     const extract = await extractMemory(text, friendName)
-    onChange(sortMemoriesDesc([...memories, buildQuickMemory(text, extract, new Date())]))
+    onChange(sortMemoriesDesc([...memoriesRef.current, buildQuickMemory(text, extract, new Date())]))
     setQuickText(''); setSaving(false); setAdding(false)
   }
 
@@ -70,7 +72,7 @@ export default function MemoryTimeline({ friendId, friendName, memories, onChang
     const updated = memories.map(m => m.id === editingId ? {
       ...m,
       date:    editDraft.date!,
-      time:    editDraft.time,
+      time:    editDraft.time || undefined,
       title:   editDraft.title!,
       content: editDraft.content ?? '',
       tags:    (editDraft.tags ?? '').split(',').map(t=>t.trim()).filter(Boolean),

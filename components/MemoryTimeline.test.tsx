@@ -40,6 +40,23 @@ describe('MemoryTimeline quick add', () => {
     expect(onChange.mock.calls[0][0][0].title).toBe('一起吃了火锅')
   })
 
+  it('AI 整理期间删除的记录不会被复活', async () => {
+    let resolveExtract!: (v: null) => void
+    vi.mocked(extractMemory).mockReturnValue(new Promise(r => { resolveExtract = r }))
+    const existing = { id: 'old', date: '2026-07-01', title: '旧的', content: '', tags: [], media: [] }
+    const onChange = vi.fn()
+    const { rerender } = render(<MemoryTimeline friendId="f1" friendName="阿明" memories={[existing]} onChange={onChange} />)
+    fireEvent.click(screen.getByText('+ 记录一颗星尘'))
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '新的一条' } })
+    fireEvent.click(screen.getByText('保存'))
+    rerender(<MemoryTimeline friendId="f1" friendName="阿明" memories={[]} onChange={onChange} />)
+    resolveExtract(null)
+    await waitFor(() => expect(onChange).toHaveBeenCalled())
+    const saved = onChange.mock.calls.at(-1)![0]
+    expect(saved).toHaveLength(1)
+    expect(saved[0].title).toBe('新的一条')
+  })
+
   it('内容为空时保存按钮禁用', () => {
     render(<MemoryTimeline friendId="f1" friendName="阿明" memories={[]} onChange={vi.fn()} />)
     fireEvent.click(screen.getByText('+ 记录一颗星尘'))
