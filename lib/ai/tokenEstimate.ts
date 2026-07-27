@@ -11,6 +11,7 @@ export interface TokenEstimate {
 export const OUTPUT_LIMITS = {
   atlas: 2600,
   question: 1200,
+  extract: 200,
 }
 
 // gpt-5.5 pricing is a placeholder — verify against OpenAI's current published pricing

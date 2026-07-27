@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildAtlasPrompt } from './prompts'
+import { buildAtlasPrompt, buildExtractMemoryPrompt } from './prompts'
 import type { FriendAtlasContext } from './contextBuilder'
 
 function makeContext(): FriendAtlasContext {
@@ -29,5 +29,15 @@ describe('buildAtlasPrompt', () => {
 
   it('requires inferred content to be marked as speculation', () => {
     expect(buildAtlasPrompt(makeContext())).toContain('（推测）')
+  })
+})
+
+describe('buildExtractMemoryPrompt', () => {
+  it('包含原文、好友名与保守推断规则', () => {
+    const prompt = buildExtractMemoryPrompt({ text: '一起吃了火锅', friendName: '阿明' })
+    expect(prompt).toContain('一起吃了火锅')
+    expect(prompt).toContain('阿明')
+    expect(prompt).toContain('宁可省略')
+    expect(prompt).toContain('title')
   })
 })

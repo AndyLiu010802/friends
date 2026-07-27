@@ -84,3 +84,20 @@ ${input.question}
   "suggestedFollowUps": ["后续问题建议1", "后续问题建议2"]
 }`
 }
+
+export function buildExtractMemoryPrompt(input: { text: string; friendName: string }): string {
+  return `你是好友记录助手。用户随手记了一条与好友「${input.friendName}」的互动,请提取结构化信息。
+
+记录原文:
+${input.text}
+
+只输出 JSON,不要任何其他文字,格式:
+{"title":"...","tags":["..."],"valence":"...","initiator":"..."}
+
+规则:
+- title:12 字以内的中文短语,概括这次互动的事件本身,不含日期与好友名字。
+- tags:0-3 个中文短词(如 火锅、爬山、工作),没有合适的就给空数组。
+- valence:这次互动的情绪效价,positive/neutral/negative;只有原文能明确判断时才输出该字段。
+- initiator:发起方,me(用户主动)/friend(好友主动)/both(共同或自然发生);只有原文明确时才输出。
+- valence 与 initiator 宁可省略,不要猜。`
+}
