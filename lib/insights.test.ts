@@ -58,10 +58,10 @@ describe('generateFriendInsights', () => {
     expect(insights.some(i => i.type === 'lonely')).toBe(true)
   })
 
-  it('returns at most 5 insights', () => {
+  it('returns at most 8 insights', () => {
     const friends = Array.from({ length: 10 }, (_, i) => baseFriend({ id: `f${i}`, name: `F${i}` }))
     const insights = generateFriendInsights(friends, NOW)
-    expect(insights.length).toBeLessThanOrEqual(5)
+    expect(insights.length).toBeLessThanOrEqual(8)
   })
 
   it('sorts higher-priority insights first', () => {
@@ -95,5 +95,119 @@ describe('generateFriendInsights', () => {
     expect(recent).toBeDefined()
     expect(recent!.priority).toBe(2)
     expect(recent!.text).toContain('Emma')
+  })
+})
+
+describe('新信号:goal-drift', () => {
+  it('deepen 且超 30 天无记录:priority 2', () => {
+    const f = baseFriend({ relationshipGoal: 'deepen',
+      memories: [{ id:'m1', date:'2026-05-01', title:'t', content:'', tags:[], media:[] }] })
+    const hit = generateFriendInsights([f], NOW).find(i => i.type === 'goal-drift')!
+    expect(hit.text).toContain('更近一步')
+    expect(hit.priority).toBe(2)
+    expect(hit.dismissible).toBe(true)
+    expect(hit.fingerprint).toBe('2026-05-01')
+  })
+  it('deepen 且完全无记录也触发,指纹为 none', () => {
+    const f = baseFriend({ relationshipGoal: 'deepen' })
+    const hit = generateFriendInsights([f], NOW).find(i => i.type === 'goal-drift')!
+    expect(hit.fingerprint).toBe('none')
+  })
+  it('deepen 但 30 天内有记录:不触发', () => {
+    const f = baseFriend({ relationshipGoal: 'deepen',
+      memories: [{ id:'m1', date:'2026-06-25', title:'t', content:'', tags:[], media:[] }] })
+    expect(generateFriendInsights([f], NOW).find(i => i.type === 'goal-drift')).toBeUndefined()
+  })
+  it('repair 且最新记录为 negative:priority 3,指纹为该记录 id', () => {
+    const f = baseFriend({ relationshipGoal: 'repair', memories: [
+      { id:'ok', date:'2026-07-01', title:'t', content:'', tags:[], media:[], valence:'positive' },
+      { id:'bad', date:'2026-07-20', title:'t', content:'', tags:[], media:[], valence:'negative' },
+    ] })
+    const hit = generateFriendInsights([f], NOW).find(i => i.type === 'goal-drift')!
+    expect(hit.priority).toBe(3)
+    expect(hit.text).toContain('缓和')
+    expect(hit.fingerprint).toBe('bad')
+  })
+  it('repair 但最新记录非 negative:不触发', () => {
+    const f = baseFriend({ relationshipGoal: 'repair', memories: [
+      { id:'bad', date:'2026-07-01', title:'t', content:'', tags:[], media:[], valence:'negative' },
+      { id:'ok', date:'2026-07-20', title:'t', content:'', tags:[], media:[], valence:'positive' },
+    ] })
+    expect(generateFriendInsights([f], NOW).find(i => i.type === 'goal-drift')).toBeUndefined()
+  })
+})
+
+describe('新信号:one-sided', () => {
+  const mem = (id: string, date: string, initiator?: 'me' | 'friend' | 'both') =>
+    ({ id, date, title:'t', content:'', tags:[], media:[], initiator })
+  it('最近 5 条有 initiator 的记录全为 me:触发,指纹为 5 个 id', () => {
+    const f = baseFriend({ memories: [
+      mem('m1','2026-07-01','me'), mem('m2','2026-07-02','me'), mem('m3','2026-07-03','me'),
+      mem('m4','2026-07-04','me'), mem('m5','2026-07-05','me'),
+      mem('old','2026-01-01','friend'), // 第 6 近,不在窗口内
+      mem('x','2026-07-06'),            // 无 initiator,不计入选取
+    ] })
+    const hit = generateFriendInsights([f], NOW).find(i => i.type === 'one-sided')!
+    expect(hit.priority).toBe(2)
+    expect(hit.fingerprint).toBe('m5,m4,m3,m2,m1')
+  })
+  it('有 initiator 的记录不足 5 条:不触发', () => {
+    const f = baseFriend({ memories: [
+      mem('m1','2026-07-01','me'), mem('m2','2026-07-02','me'),
+      mem('m3','2026-07-03','me'), mem('m4','2026-07-04','me'),
+    ] })
+    expect(generateFriendInsights([f], NOW).find(i => i.type === 'one-sided')).toBeUndefined()
+  })
+  it('最近 5 条里混有 friend/both:不触发', () => {
+    const f = baseFriend({ memories: [
+      mem('m1','2026-07-01','me'), mem('m2','2026-07-02','me'), mem('m3','2026-07-03','both'),
+      mem('m4','2026-07-04','me'), mem('m5','2026-07-05','me'),
+    ] })
+    expect(generateFriendInsights([f], NOW).find(i => i.type === 'one-sided')).toBeUndefined()
+  })
+})
+
+describe('生日三档', () => {
+  it('今天生日:priority 3 且不可忽略,指纹含 today', () => {
+    const f = baseFriend({ birthday: '2000-07-01' })
+    const hit = generateFriendInsights([f], NOW).find(i => i.type === 'birthday')!
+    expect(hit.priority).toBe(3)
+    expect(hit.dismissible).toBe(false)
+    expect(hit.fingerprint).toBe('2026-07-01-today')
+  })
+  it('7 天内:priority 3 可忽略,档位 soon', () => {
+    const f = baseFriend({ birthday: '2000-07-06' })
+    const hit = generateFriendInsights([f], NOW).find(i => i.type === 'birthday')!
+    expect(hit.priority).toBe(3)
+    expect(hit.dismissible).toBe(true)
+    expect(hit.fingerprint).toBe('2026-07-06-soon')
+  })
+  it('8-14 天:priority 2,档位 later', () => {
+    const f = baseFriend({ birthday: '2000-07-12' })
+    const hit = generateFriendInsights([f], NOW).find(i => i.type === 'birthday')!
+    expect(hit.priority).toBe(2)
+    expect(hit.fingerprint).toBe('2026-07-12-later')
+    expect(hit.text).toContain('11 天后')
+  })
+  it('15 天以上:无生日信号', () => {
+    const f = baseFriend({ birthday: '2000-07-19' })
+    expect(generateFriendInsights([f], NOW).find(i => i.type === 'birthday')).toBeUndefined()
+  })
+})
+
+describe('通用字段', () => {
+  it('所有信号都带 fingerprint 与 dismissible', () => {
+    const f = baseFriend({ birthday: '2000-07-10', relationshipGoal: 'deepen' })
+    for (const ins of generateFriendInsights([f], NOW)) {
+      expect(typeof ins.fingerprint).toBe('string')
+      expect(ins.fingerprint.length).toBeGreaterThan(0)
+      expect(typeof ins.dismissible).toBe('boolean')
+    }
+  })
+  it('上限 8 条', () => {
+    const many = Array.from({ length: 6 }, (_, i) => baseFriend({
+      id: `f${i}`, name: `友${i}`, birthday: '2000-07-10', relationshipGoal: 'deepen',
+    }))
+    expect(generateFriendInsights(many, NOW).length).toBeLessThanOrEqual(8)
   })
 })
