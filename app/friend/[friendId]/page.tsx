@@ -7,20 +7,25 @@ import type { Friend, Memory } from '@/lib/types'
 import FriendForm from '@/components/FriendForm'
 import MemoryTimeline from '@/components/MemoryTimeline'
 import Link from 'next/link'
+import SearchOverlay from '@/components/SearchOverlay'
 import { fs, gold, danger, border, surface, radius, font } from '@/lib/ui/tokens'
 
 export default function EditFriendPage() {
   const { friendId } = useParams<{ friendId: string }>()
   const router = useRouter()
   const [friend, setFriend] = useState<Friend | null | undefined>(undefined)
+  const [allFriends, setAllFriends] = useState<Friend[]>([])
+  const [searchOpen, setSearchOpen] = useState(false)
 
   useEffect(() => {
-    const found = getFriends().find(f => f.id === friendId) ?? null
+    const all = getFriends()
+    const found = all.find(f => f.id === friendId) ?? null
     // One-time client-only localStorage read keyed on friendId; not a subscription to an
     // external system, and there's no render-time alternative since localStorage doesn't
     // exist during SSR.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setFriend(found)
+    setAllFriends(all)
   }, [friendId])
 
   function handleMemoriesChange(memories: Memory[]) {
@@ -71,8 +76,15 @@ export default function EditFriendPage() {
       background:'radial-gradient(ellipse at 30% 40%, #0d1b4b 0%, #020408 70%)',
     }}>
       <div style={{ width:'100%', maxWidth:560, margin:'0 auto' }}>
-        <Link href="/" style={{ color: gold.muted, fontSize: fs.meta, letterSpacing:2,
-          textDecoration:'none', display:'block', marginBottom:32 }}>← 返回星图</Link>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:32 }}>
+          <Link href="/" style={{ color: gold.muted, fontSize: fs.meta, letterSpacing:2,
+            textDecoration:'none' }}>← 返回星图</Link>
+          <button type="button" onClick={() => setSearchOpen(true)} style={{
+            color: gold.muted, fontSize: fs.meta, letterSpacing:2,
+            background:'none', border:'none', cursor:'pointer', fontFamily:'inherit',
+            padding:0,
+          }}>⌕ 寻星</button>
+        </div>
         <h1 style={{ color: gold.base, fontFamily: font.hand,
           fontSize: fs.display, letterSpacing:4, marginBottom:32 }}>✦ {friend.name}</h1>
         <FriendForm initial={friend} />
@@ -100,6 +112,12 @@ export default function EditFriendPage() {
           }}>删除好友</button>
         </div>
       </div>
+      <SearchOverlay
+        friends={allFriends}
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+        onPick={id => router.push(`/friend/${id}`)}
+      />
     </main>
   )
 }

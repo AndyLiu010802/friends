@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseDateOnly, daysBetween } from './dateUtils'
+import { parseDateOnly, daysBetween, formatRelativeDate } from './dateUtils'
 
 describe('parseDateOnly', () => {
   it('parses a YYYY-MM-DD string into a local Date at midnight', () => {
@@ -31,4 +31,16 @@ describe('daysBetween', () => {
     const b = new Date(2026, 5, 2, 1, 0)
     expect(daysBetween(a, b)).toBe(1)
   })
+})
+
+describe('formatRelativeDate', () => {
+  const now = new Date(2026, 6, 27) // 2026-07-27
+  it('今天', () => expect(formatRelativeDate('2026-07-27', now)).toBe('今天'))
+  it('昨天', () => expect(formatRelativeDate('2026-07-26', now)).toBe('昨天'))
+  it('30 天内显示 N 天前', () => expect(formatRelativeDate('2026-07-24', now)).toBe('3 天前'))
+  it('30 天及以上显示原日期', () => expect(formatRelativeDate('2026-06-01', now)).toBe('2026-06-01'))
+  it('未来日期按今天处理', () => expect(formatRelativeDate('2026-08-01', now)).toBe('今天'))
+  it('非法日期原样返回', () => expect(formatRelativeDate('not-a-date', now)).toBe('not-a-date'))
+  it('29 天前是最后一个相对显示', () => expect(formatRelativeDate('2026-06-28', now)).toBe('29 天前'))
+  it('恰好 30 天显示原日期', () => expect(formatRelativeDate('2026-06-27', now)).toBe('2026-06-27'))
 })

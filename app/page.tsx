@@ -6,6 +6,7 @@ import OrreryEntry from '@/components/StarMap/OrreryEntry'
 import InsightPanel from '@/components/InsightPanel'
 import EmptyUniverse from '@/components/EmptyUniverse'
 import FirstRunHint from '@/components/FirstRunHint'
+import SearchOverlay from '@/components/SearchOverlay'
 import { getFriends } from '@/lib/store'
 import { pullAll } from '@/lib/supabase'
 import { fs, gold, border, radius, font } from '@/lib/ui/tokens'
@@ -28,6 +29,7 @@ export default function HomePage() {
   const [selectedFriendId, setSelectedFriendId] = useState<string | null>(null)
   // 聚焦模式：卡片停靠右侧期间隐藏洞察面板，避免右侧重叠；关闭卡片即恢复
   const [focusedFriendId, setFocusedFriendId] = useState<string | null>(null)
+  const [searchOpen, setSearchOpen] = useState(false)
 
   // 挂载即拉数——入场页兼职加载屏，不把加载成本转嫁给点击之后
   useEffect(() => {
@@ -49,11 +51,19 @@ export default function HomePage() {
         }}>
           <span style={{ color: gold.base, fontFamily: font.hand,
             fontSize: fs.title, letterSpacing:4 }}>✦ 友记</span>
-          <Link href="/friend/new" style={{
-            color: gold.base, fontSize: fs.meta, letterSpacing:2,
-            border:`1px solid ${border.gold}`, borderRadius: radius.pill,
-            padding:'10px 18px', textDecoration:'none', pointerEvents:'auto',
-          }}>✦ 新纪录</Link>
+          <span style={{ display:'flex', gap:10 }}>
+            <button type="button" onClick={() => setSearchOpen(true)} style={{
+              color: gold.base, fontSize: fs.meta, letterSpacing:2,
+              border:`1px solid ${border.gold}`, borderRadius: radius.pill,
+              padding:'10px 18px', background:'none', cursor:'pointer',
+              fontFamily:'inherit', pointerEvents:'auto',
+            }}>⌕ 寻星</button>
+            <Link href="/friend/new" style={{
+              color: gold.base, fontSize: fs.meta, letterSpacing:2,
+              border:`1px solid ${border.gold}`, borderRadius: radius.pill,
+              padding:'10px 18px', textDecoration:'none', pointerEvents:'auto',
+            }}>✦ 新纪录</Link>
+          </span>
         </nav>
       )}
 
@@ -73,6 +83,12 @@ export default function HomePage() {
           )}
           {dataReady && friends.length === 0 && <EmptyUniverse />}
           {dataReady && friends.length > 0 && <FirstRunHint />}
+          <SearchOverlay
+            friends={friends}
+            open={searchOpen}
+            onOpenChange={setSearchOpen}
+            onPick={id => { setSelectedFriendId(id); setFocusedFriendId(id) }}
+          />
         </>
       )}
     </>

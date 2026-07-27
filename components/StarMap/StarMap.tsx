@@ -202,6 +202,7 @@ export default function StarMap({ friends, cinematic = false, selectedFriendId =
     }
 
     const onKeyDown = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || e.isComposing) return
       if (e.key === 'Escape') {
         pinnedFriendIdRef.current = null
         setPinnedFriend(null)
