@@ -271,6 +271,9 @@ export default function StarMap({ friends, cinematic = false, selectedFriendId =
 
     const lines = buildConstellationLines(friends)
     linesRef.current = lines
+    // 先应用聚焦高亮/压暗，让下面的渐入 tween 以聚焦后的透明度为目标值，
+    // 否则动画会把压暗的连线又拉回全亮
+    highlightLines(lines, pinnedFriendIdRef.current)
     lines.forEach((l, i) => {
       pivot.add(l.line)
       const mat = l.line.material as THREE.LineBasicMaterial
@@ -280,12 +283,11 @@ export default function StarMap({ friends, cinematic = false, selectedFriendId =
         duration: useStagger ? 1.2 : 0.4, delay: useStagger ? 1 + i * 0.05 : 0 })
     })
 
-    // friends 更新（如快记后）时，停靠卡片快照与连线高亮/压暗都要跟着刷新，
-    // 否则卡片显示旧回忆、新连线丢失聚焦状态。此处是把外部 three.js 场景与 React 状态
-    // 同步的一部分（与上面重建 stars/lines 同一批同步动作），不是可移到渲染期的派生状态。
+    // friends 更新（如快记后）时，停靠卡片快照要跟着刷新，否则卡片显示旧回忆。
+    // 此处是把外部 three.js 场景与 React 状态同步的一部分（与上面重建 stars/lines
+    // 同一批同步动作），不是可移到渲染期的派生状态。
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setPinnedFriend(prev => prev ? friends.find(f => f.id === prev.id) ?? null : null)
-    highlightLines(linesRef.current, pinnedFriendIdRef.current)
   }, [friends])
 
   // 从洞察面板选中：与点星同一套运镜——飞向那颗星，卡片停靠右侧
