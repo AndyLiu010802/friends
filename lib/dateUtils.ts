@@ -11,3 +11,13 @@ export function daysBetween(dateA: Date, dateB: Date): number {
   const b = new Date(dateB.getFullYear(), dateB.getMonth(), dateB.getDate())
   return Math.round((b.getTime() - a.getTime()) / 86400000)
 }
+
+export function formatRelativeDate(date: string, now: Date = new Date()): string {
+  const parsed = parseDateOnly(date)
+  if (!parsed) return date
+  const days = daysBetween(parsed, now)
+  if (days <= 0) return '今天'
+  if (days === 1) return '昨天'
+  if (days < 30) return `${days} 天前`
+  return date
+}
