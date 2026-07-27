@@ -1,0 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;700&family=Ma+Shan+Zheng&display=swap');
+@import "tailwindcss";
+
+/* @theme exposes Tailwind utility classes (e.g. bg-gold, text-purple).
+   :root custom props are used in raw CSS var() calls.
+   Keep values in sync — lib/ui/tokens.ts is the source of truth. */
+@theme {
+  --color-gold: #e2b96f;
+  --color-gold-dim: rgba(226,185,111,0.3);
+  --color-purple: #a99dd1;
+  --color-purple-dim: rgba(155,142,196,0.5);
+  --color-night: #020408;
+  --color-card-bg: rgba(4,7,20,0.94);
+  --color-card-border: rgba(226,185,111,0.3);
+  --font-serif: 'Noto Serif SC', serif;
+  --font-handwrite: 'Ma Shan Zheng', cursive;
+}
+
+:root {
+  color-scheme: dark; /* 暗色日期选择器/滚动条/自动填充 */
+  --bg:         #020408;
+  --gold:       #e2b96f;
+  --gold-dim:   rgba(226,185,111,0.3);
+  --purple:     #a99dd1;
+  --purple-dim: rgba(155,142,196,0.5);
+  --card-bg:    rgba(4,7,20,0.94);
+  --card-border:rgba(226,185,111,0.3);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: #ece7db;
+  font-family: 'Noto Serif SC', serif;
+  /* 星图页的画布是 position:fixed，不产生文档流内容；表单/设置/图鉴页需要正常滚动，
+     因此不再全局 overflow:hidden。overscroll-behavior 防止移动端橡皮筋带崩全屏体验。 */
+  overscroll-behavior: none;
+}
+
+select {
+  background-color: #0d1428;
+  color: #f1e9d8;
+}
+select option {
+  background-color: #0d1428;
+  color: #f1e9d8;
+}
+
+@keyframes youji-sheet-in {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+@keyframes youji-breathe {
+  0%, 100% { transform: scale(1);    opacity: .75; }
+  50%      { transform: scale(1.25); opacity: 1;   }
+}
+
+/* iOS Safari 在输入框字号 <16px 时聚焦会强制放大整页；
+   inline style 优先级高于普通规则，必须 !important。 */
+@media (max-width: 640px) {
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+}
