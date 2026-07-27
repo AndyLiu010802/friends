@@ -193,6 +193,22 @@ describe('生日三档', () => {
     const f = baseFriend({ birthday: '2000-07-19' })
     expect(generateFriendInsights([f], NOW).find(i => i.type === 'birthday')).toBeUndefined()
   })
+  it('恰好 7 天:仍是 soon 档 priority 3', () => {
+    const f = baseFriend({ birthday: '2000-07-08' })
+    const hit = generateFriendInsights([f], NOW).find(i => i.type === 'birthday')!
+    expect(hit.priority).toBe(3)
+    expect(hit.fingerprint).toBe('2026-07-08-soon')
+  })
+  it('恰好 8 天:进入 later 档 priority 2', () => {
+    const f = baseFriend({ birthday: '2000-07-09' })
+    const hit = generateFriendInsights([f], NOW).find(i => i.type === 'birthday')!
+    expect(hit.priority).toBe(2)
+    expect(hit.fingerprint).toBe('2026-07-09-later')
+  })
+  it('恰好 14 天:仍触发 later 档', () => {
+    const f = baseFriend({ birthday: '2000-07-15' })
+    expect(generateFriendInsights([f], NOW).find(i => i.type === 'birthday')!.fingerprint).toBe('2026-07-15-later')
+  })
 })
 
 describe('通用字段', () => {
@@ -208,6 +224,6 @@ describe('通用字段', () => {
     const many = Array.from({ length: 6 }, (_, i) => baseFriend({
       id: `f${i}`, name: `友${i}`, birthday: '2000-07-10', relationshipGoal: 'deepen',
     }))
-    expect(generateFriendInsights(many, NOW).length).toBeLessThanOrEqual(8)
+    expect(generateFriendInsights(many, NOW).length).toBe(8)
   })
 })
