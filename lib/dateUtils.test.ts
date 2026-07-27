@@ -41,4 +41,6 @@ describe('formatRelativeDate', () => {
   it('30 天及以上显示原日期', () => expect(formatRelativeDate('2026-06-01', now)).toBe('2026-06-01'))
   it('未来日期按今天处理', () => expect(formatRelativeDate('2026-08-01', now)).toBe('今天'))
   it('非法日期原样返回', () => expect(formatRelativeDate('not-a-date', now)).toBe('not-a-date'))
+  it('29 天前是最后一个相对显示', () => expect(formatRelativeDate('2026-06-28', now)).toBe('29 天前'))
+  it('恰好 30 天显示原日期', () => expect(formatRelativeDate('2026-06-27', now)).toBe('2026-06-27'))
 })
