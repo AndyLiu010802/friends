@@ -71,6 +71,23 @@ describe('QuickNoteOverlay', () => {
     expect(screen.getByText(/已记入/)).toBeInTheDocument()
   })
 
+  it('保存期间被关闭:落库完成但重开后不显示已记入', async () => {
+    let resolveExtract!: (v: null) => void
+    vi.mocked(extractMemory).mockReturnValue(new Promise(r => { resolveExtract = r }))
+    const onOpenChange = vi.fn()
+    const onSaved = vi.fn()
+    const { rerender } = render(<QuickNoteOverlay friends={friends} open onOpenChange={onOpenChange} onSaved={onSaved} defaultFriendId="a" />)
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '一句话' } })
+    fireEvent.click(screen.getByText('保存'))
+    rerender(<QuickNoteOverlay friends={friends} open={false} onOpenChange={onOpenChange} onSaved={onSaved} defaultFriendId="a" />)
+    resolveExtract(null)
+    await waitFor(() => expect(onSaved).toHaveBeenCalledWith('a'))
+    rerender(<QuickNoteOverlay friends={friends} open onOpenChange={onOpenChange} onSaved={onSaved} defaultFriendId="a" />)
+    expect(screen.queryByText(/已记入/)).not.toBeInTheDocument()
+    expect(screen.getByRole('textbox')).toBeInTheDocument()
+    expect(getFriends().find(f => f.id === 'a')!.memories).toHaveLength(1)
+  })
+
   it('空内容保存按钮禁用', () => {
     setup({ defaultFriendId: 'a' })
     expect(screen.getByText('保存')).toBeDisabled()

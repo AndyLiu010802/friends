@@ -27,7 +27,10 @@ export default function QuickNoteOverlay({ friends, open, onOpenChange, defaultF
   const [saving, setSaving] = useState(false)
   const [notFound, setNotFound] = useState(false)
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const openRef = useRef(open)
   const isMobile = useIsMobile()
+
+  useEffect(() => { openRef.current = open }, [open])
 
   // 全局快捷键:Ctrl/Cmd+J 开(输入框聚焦时不劫持),Esc 关;捕获阶段先于 StarMap
   useEffect(() => {
@@ -51,6 +54,7 @@ export default function QuickNoteOverlay({ friends, open, onOpenChange, defaultF
   // 依赖刻意不含 friends:保存后父页刷新 friends 不应把仍在「已记入」态的浮层重置回选人步。
   useEffect(() => {
     if (open) {
+      if (closeTimer.current) clearTimeout(closeTimer.current)
       const preset = defaultFriendId && friends.some(f => f.id === defaultFriendId)
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setStep(preset ? 'write' : 'pick')
@@ -84,6 +88,7 @@ export default function QuickNoteOverlay({ friends, open, onOpenChange, defaultF
     pushFriend(updated).catch(console.error)
     onSaved(picked.id)
     setSaving(false)
+    if (!openRef.current) return // 已被关闭:保存已完成,不再进入 done 态
     setStep('done')
     closeTimer.current = setTimeout(() => onOpenChange(false), 1200)
   }
