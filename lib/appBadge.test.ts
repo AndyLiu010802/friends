@@ -4,7 +4,7 @@ import { updateAppBadge } from './appBadge'
 afterEach(() => {
   // @ts-expect-error 清理测试挂上去的 API
   delete navigator.setAppBadge
-  // @ts-expect-error 同上
+  // @ts-expect-error 同样清理测试挂上去的 API
   delete navigator.clearAppBadge
 })
 
