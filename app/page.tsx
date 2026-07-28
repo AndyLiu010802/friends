@@ -58,7 +58,8 @@ export default function HomePage() {
 
   // 已安装 PWA 的图标角标:今天必看的信号数
   const urgentCount = insights.filter(i => i.priority === 3).length
-  useEffect(() => { updateAppBadge(urgentCount) }, [urgentCount])
+  // dataReady 之前 friends 恒为空,直接更新会把上次会话的角标闪清一帧
+  useEffect(() => { if (dataReady) updateAppBadge(urgentCount) }, [dataReady, urgentCount])
 
   return (
     <>
