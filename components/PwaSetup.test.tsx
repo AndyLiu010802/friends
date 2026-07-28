@@ -1,14 +1,18 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render } from '@testing-library/react'
+import { render, waitFor } from '@testing-library/react'
 import PwaSetup, { getInstallPrompt, promptInstall, _resetForTest } from './PwaSetup'
 
 const register = vi.fn().mockResolvedValue(undefined)
+const unregister = vi.fn()
+const getRegistrations = vi.fn().mockResolvedValue([{ unregister }])
 
 beforeEach(() => {
   _resetForTest()
   register.mockClear()
+  unregister.mockClear()
+  getRegistrations.mockClear()
   Object.defineProperty(navigator, 'serviceWorker', {
-    configurable: true, value: { register },
+    configurable: true, value: { register, getRegistrations },
   })
 })
 afterEach(() => {
@@ -24,10 +28,11 @@ describe('PwaSetup', () => {
     expect(register).toHaveBeenCalledWith('/sw.js')
   })
 
-  it('开发环境不注册', () => {
+  it('开发环境不注册,且清理既有注册(防缓存毒化 dev)', async () => {
     vi.stubEnv('NODE_ENV', 'development')
     render(<PwaSetup />)
     expect(register).not.toHaveBeenCalled()
+    await waitFor(() => expect(unregister).toHaveBeenCalled())
   })
 
   it('捕获 beforeinstallprompt 后 getInstallPrompt 非空并派发就绪事件', () => {

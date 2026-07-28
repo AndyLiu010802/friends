@@ -31,6 +31,11 @@ export default function PwaSetup() {
   useEffect(() => {
     if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(console.error)
+    } else if ('serviceWorker' in navigator) {
+      // 开发环境:清掉本机之前生产验证时注册的 SW,避免其缓存毒化 next dev 的非哈希资源
+      navigator.serviceWorker.getRegistrations?.()
+        .then(rs => rs.forEach(r => { void r.unregister() }))
+        .catch(() => {})
     }
     function onBeforeInstall(e: Event) {
       e.preventDefault()

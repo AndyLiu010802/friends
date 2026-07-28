@@ -1,6 +1,6 @@
 // 友记 Service Worker:应用外壳离线缓存。数据在 localStorage,不经过这里。
 // 改动本文件时递增版本号,activate 会清掉旧缓存。
-const CACHE = 'youji-v1'
+const CACHE = 'youji-v2'
 const SHELL_KEY = '/'
 
 self.addEventListener('install', () => {
@@ -23,12 +23,14 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return   // 跨域(Supabase 等)不拦
   if (url.pathname.startsWith('/api/')) return       // AI 路由永远走网络
 
-  // 页面导航:网络优先,成功则以 '/' 为 key 存外壳;断网回退缓存外壳
+  // 页面导航:网络优先;只有访问 '/' 本身时才更新外壳缓存——App Router 每个路由的
+  // HTML 内嵌各自的 RSC 数据,缓存任意页面会让离线启动渲染错页(如登录页困死本地数据)。
+  // manifest start_url 为 '/',每次 PWA 启动都会刷新外壳。断网时任何导航回退到外壳。
   if (req.mode === 'navigate') {
     event.respondWith(
       fetch(req)
         .then(res => {
-          if (res.ok) {
+          if (res.ok && url.pathname === SHELL_KEY) {
             const copy = res.clone()
             event.waitUntil(caches.open(CACHE).then(c => c.put(SHELL_KEY, copy)).catch(() => {}))
           }
