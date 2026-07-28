@@ -13,7 +13,7 @@ import { pullAll } from '@/lib/supabase'
 import { useIsMobile } from '@/lib/useIsMobile'
 import { fs, gold, border, radius, font } from '@/lib/ui/tokens'
 import type { Friend } from '@/lib/types'
-import { generateFriendInsights } from '@/lib/insights'
+import { generateFriendInsights, INSIGHT_DISPLAY_CAP } from '@/lib/insights'
 import { getDismissals, dismissSignal, filterDismissed } from '@/lib/signalDismissals'
 
 const StarMap = dynamic(() => import('@/components/StarMap/StarMap'), { ssr: false })
@@ -52,7 +52,7 @@ export default function HomePage() {
     setDismissals(getDismissals())
   }, [])
 
-  const insights = filterDismissed(generateFriendInsights(friends), dismissals)
+  const insights = filterDismissed(generateFriendInsights(friends), dismissals).slice(0, INSIGHT_DISPLAY_CAP)
   const hasUrgent = insights.some(i => i.priority === 3)
 
   return (

@@ -1,6 +1,6 @@
 // lib/insights.test.ts
 import { describe, it, expect } from 'vitest'
-import { generateFriendInsights } from './insights'
+import { generateFriendInsights, INSIGHT_DISPLAY_CAP } from './insights'
 import type { Friend } from './types'
 
 const NOW = new Date(2026, 6, 1) // 2026-07-01, matches today's date in this project
@@ -220,10 +220,10 @@ describe('通用字段', () => {
       expect(typeof ins.dismissible).toBe('boolean')
     }
   })
-  it('上限 8 条', () => {
+  it('生成层不截断(上限由展示层在过滤忽略后应用,保证补位)', () => {
     const many = Array.from({ length: 6 }, (_, i) => baseFriend({
       id: `f${i}`, name: `友${i}`, birthday: '2000-07-10', relationshipGoal: 'deepen',
     }))
-    expect(generateFriendInsights(many, NOW).length).toBe(8)
+    expect(generateFriendInsights(many, NOW).length).toBeGreaterThan(INSIGHT_DISPLAY_CAP)
   })
 })

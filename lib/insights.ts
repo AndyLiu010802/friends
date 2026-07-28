@@ -140,12 +140,15 @@ export function generateFriendInsights(friends: Friend[], now: Date = new Date()
     }
   }
 
-  return insights
-    .sort((a, b) => {
-      if (a.priority !== b.priority) return b.priority - a.priority
-      if (a.type === 'birthday' && b.type !== 'birthday') return -1
-      if (b.type === 'birthday' && a.type !== 'birthday') return 1
-      return 0
-    })
-    .slice(0, 8)
+  // 不在生成层截断:展示上限(8 条)由页面在过滤掉已忽略信号之后应用,
+  // 这样「知道了」某条后,排在后面的信号才能真正补位。
+  return insights.sort((a, b) => {
+    if (a.priority !== b.priority) return b.priority - a.priority
+    if (a.type === 'birthday' && b.type !== 'birthday') return -1
+    if (b.type === 'birthday' && a.type !== 'birthday') return 1
+    return 0
+  })
 }
+
+// 展示上限:在 filterDismissed 之后调用
+export const INSIGHT_DISPLAY_CAP = 8
