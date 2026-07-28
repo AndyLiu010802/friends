@@ -30,7 +30,7 @@ self.addEventListener('fetch', (event) => {
         .then(res => {
           if (res.ok) {
             const copy = res.clone()
-            caches.open(CACHE).then(c => c.put(SHELL_KEY, copy)).catch(() => {})
+            event.waitUntil(caches.open(CACHE).then(c => c.put(SHELL_KEY, copy)).catch(() => {}))
           }
           return res
         })
@@ -45,7 +45,7 @@ self.addEventListener('fetch', (event) => {
       caches.match(req).then(hit => hit ?? fetch(req).then(res => {
         if (res.ok) {
           const copy = res.clone()
-          caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {})
+          event.waitUntil(caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {}))
         }
         return res
       }))
@@ -59,7 +59,7 @@ self.addEventListener('fetch', (event) => {
       const refresh = fetch(req).then(res => {
         if (res.ok) {
           const copy = res.clone()
-          caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {})
+          event.waitUntil(caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {}))
         }
         return res
       }).catch(() => hit ?? Response.error())
