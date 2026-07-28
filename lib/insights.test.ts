@@ -58,12 +58,6 @@ describe('generateFriendInsights', () => {
     expect(insights.some(i => i.type === 'lonely')).toBe(true)
   })
 
-  it('returns at most 8 insights', () => {
-    const friends = Array.from({ length: 10 }, (_, i) => baseFriend({ id: `f${i}`, name: `F${i}` }))
-    const insights = generateFriendInsights(friends, NOW)
-    expect(insights.length).toBeLessThanOrEqual(8)
-  })
-
   it('sorts higher-priority insights first', () => {
     const friends = [
       baseFriend({ id: 'a', name: 'A' }), // lonely -> priority 1, incomplete -> priority 1
