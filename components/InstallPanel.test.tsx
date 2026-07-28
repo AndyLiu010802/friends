@@ -53,6 +53,14 @@ describe('InstallPanel', () => {
     expect(screen.getByText(/添加到主屏幕/)).toBeInTheDocument()
   })
 
+  it('iPadOS 伪装 Mac UA 时按触点数识别为 iOS', () => {
+    stubUA('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15')
+    Object.defineProperty(navigator, 'maxTouchPoints', { configurable: true, value: 5 })
+    render(<InstallPanel />)
+    expect(screen.getByText(/添加到主屏幕/)).toBeInTheDocument()
+    Object.defineProperty(navigator, 'maxTouchPoints', { configurable: true, value: 0 })
+  })
+
   it('其余环境显示不支持提示', () => {
     render(<InstallPanel />)
     expect(screen.getByText(/不支持安装/)).toBeInTheDocument()

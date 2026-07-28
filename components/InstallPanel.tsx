@@ -8,7 +8,9 @@ type InstallState = 'standalone' | 'installable' | 'ios' | 'unsupported'
 function detectState(): InstallState {
   if (window.matchMedia('(display-mode: standalone)').matches) return 'standalone'
   if (getInstallPrompt()) return 'installable'
-  if (/iphone|ipad|ipod/i.test(navigator.userAgent)) return 'ios'
+  // iPadOS 13+ 默认伪装桌面 Mac UA,用触点数识别
+  const isIpadOs = /macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1
+  if (/iphone|ipad|ipod/i.test(navigator.userAgent) || isIpadOs) return 'ios'
   return 'unsupported'
 }
 
