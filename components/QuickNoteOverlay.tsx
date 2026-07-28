@@ -87,6 +87,7 @@ export default function QuickNoteOverlay({ friends, open, onOpenChange, defaultF
     saveFriend(updated)
     pushFriend(updated).catch(console.error)
     onSaved(picked.id)
+    navigator.vibrate?.(10) // 触觉确认,不支持时为 undefined 安全跳过
     setSaving(false)
     if (!openRef.current) return // 已被关闭:保存已完成,不再进入 done 态
     setStep('done')

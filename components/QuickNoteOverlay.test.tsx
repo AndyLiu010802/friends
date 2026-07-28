@@ -71,6 +71,18 @@ describe('QuickNoteOverlay', () => {
     expect(screen.getByText(/已记入/)).toBeInTheDocument()
   })
 
+  it('保存成功触发轻震动(支持时)', async () => {
+    const vibrate = vi.fn()
+    Object.defineProperty(navigator, 'vibrate', { configurable: true, value: vibrate })
+    const { onSaved } = setup({ defaultFriendId: 'a' })
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '试试震动' } })
+    fireEvent.click(screen.getByText('保存'))
+    await waitFor(() => expect(onSaved).toHaveBeenCalled())
+    expect(vibrate).toHaveBeenCalledWith(10)
+    // @ts-expect-error 清理 mock
+    delete navigator.vibrate
+  })
+
   it('保存期间被关闭:落库完成但重开后不显示已记入', async () => {
     let resolveExtract!: (v: null) => void
     vi.mocked(extractMemory).mockReturnValue(new Promise(r => { resolveExtract = r }))

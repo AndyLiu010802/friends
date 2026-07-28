@@ -9,6 +9,7 @@ import FirstRunHint from '@/components/FirstRunHint'
 import SearchOverlay from '@/components/SearchOverlay'
 import QuickNoteOverlay from '@/components/QuickNoteOverlay'
 import { getFriends } from '@/lib/store'
+import { updateAppBadge } from '@/lib/appBadge'
 import { pullAll } from '@/lib/supabase'
 import { useIsMobile } from '@/lib/useIsMobile'
 import { fs, gold, border, radius, font } from '@/lib/ui/tokens'
@@ -54,6 +55,10 @@ export default function HomePage() {
 
   const insights = filterDismissed(generateFriendInsights(friends), dismissals).slice(0, INSIGHT_DISPLAY_CAP)
   const hasUrgent = insights.some(i => i.priority === 3)
+
+  // 已安装 PWA 的图标角标:今天必看的信号数
+  const urgentCount = insights.filter(i => i.priority === 3).length
+  useEffect(() => { updateAppBadge(urgentCount) }, [urgentCount])
 
   return (
     <>
