@@ -2,6 +2,7 @@
 import Link from 'next/link'
 import BackupPanel from '@/components/BackupPanel'
 import AccountPanel from '@/components/AccountPanel'
+import InstallPanel from '@/components/InstallPanel'
 import { fs, text, gold, border, surface, radius, font } from '@/lib/ui/tokens'
 
 const section: React.CSSProperties = {
@@ -34,6 +35,11 @@ export default function SettingsPage() {
         <section style={section}>
           <div style={sectionTitle}>✦ 云端备份</div>
           <BackupPanel />
+        </section>
+
+        <section style={section}>
+          <div style={sectionTitle}>✦ 安装到主屏</div>
+          <InstallPanel />
         </section>
 
         <section style={{ ...section, marginBottom: 0 }}>
