@@ -1,6 +1,7 @@
 import './globals.css'
 import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
+import PwaSetup from '@/components/PwaSetup'
 
 export const metadata: Metadata = {
   title: '✦ 友记',
@@ -15,7 +16,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="zh">
-      <body>{children}</body>
+      <body>{children}<PwaSetup /></body>
     </html>
   )
 }
